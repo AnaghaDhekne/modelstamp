@@ -18,6 +18,12 @@ def test_version_uses_package_version(capsys):
     assert capsys.readouterr().out.strip() == f"modelstamp {ms.__version__}"
 
 
+def test_version_matches_installed_distribution():
+    from importlib.metadata import version
+
+    assert ms.__version__ == version("modelstamp")
+
+
 def test_inspect_and_verify_commands(tmp_path, capsys):
     path = tmp_path / "model.pkl"
     ms.save(DummyModel(), path, backend="pickle", include_git=False)
