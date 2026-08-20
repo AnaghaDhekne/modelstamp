@@ -12,3 +12,4 @@ venv/
 *.manifest.json
 .coverage
 htmlcov/
+site/
