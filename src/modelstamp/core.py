@@ -7,6 +7,7 @@ import json
 import os
 import pickle
 import tempfile
+import threading
 import warnings
 from contextlib import contextmanager
 from pathlib import Path
@@ -22,6 +23,8 @@ from .exceptions import (
 )
 
 PathLike = Union[str, Path]
+_THREAD_LOCKS: Dict[str, threading.RLock] = {}
+_THREAD_LOCKS_GUARD = threading.Lock()
 
 try:
     import joblib as _joblib
@@ -89,13 +92,16 @@ def _sha256(path: Path) -> str:
 @contextmanager
 def _artifact_lock(model_path: Path) -> Iterator[None]:
     """Serialize operations on one artifact across local processes."""
-    identity = str(model_path.resolve(strict=False)).encode(
-        "utf-8", errors="surrogatepass"
+    identity = str(model_path.resolve(strict=False))
+    with _THREAD_LOCKS_GUARD:
+        thread_lock = _THREAD_LOCKS.setdefault(identity, threading.RLock())
+    lock_name = (
+        hashlib.sha256(identity.encode("utf-8", errors="surrogatepass")).hexdigest()
+        + ".lock"
     )
-    lock_name = hashlib.sha256(identity).hexdigest() + ".lock"
     lock_root = Path(tempfile.gettempdir()) / "modelstamp-locks"
     lock_root.mkdir(mode=0o700, parents=True, exist_ok=True)
-    with (lock_root / lock_name).open("a+b") as stream:
+    with thread_lock, (lock_root / lock_name).open("a+b") as stream:
         if os.name == "nt":  # pragma: no cover - exercised on Windows.
             import msvcrt
 
