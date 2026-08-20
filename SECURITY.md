@@ -31,6 +31,12 @@ HMAC-SHA-256. Protect the key independently of the artifact. Signed manifests
 detect unauthorized replacement, but they do not sandbox pickle/joblib or
 prevent malicious code in an artifact signed by a compromised or untrusted key.
 
+HMAC is symmetric: signing and verification use the same secret. Anyone who
+possesses the verification key can also forge a valid manifest, so HMAC keys
+must not be published or distributed to verification-only consumers.
+`modelstamp` does not currently provide asymmetric verification through
+Ed25519, Sigstore, or another public-key signature system.
+
 Use `key_id` on new artifacts and pass a `signing_keys` registry when loading to
 rotate secrets without invalidating older models. The key identifier is itself
 authenticated. Remove old registry entries only after their artifacts have
