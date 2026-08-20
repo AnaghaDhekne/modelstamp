@@ -6,6 +6,10 @@
 [![Python 3.8–3.13](https://img.shields.io/badge/python-3.8%E2%80%933.13-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/AnaghaDhekne/modelstamp/blob/main/LICENSE)
 
+[Documentation](https://anaghadhekne.github.io/modelstamp/) ·
+[Benchmarks](https://github.com/AnaghaDhekne/modelstamp/blob/main/BENCHMARKS.md) ·
+[Security policy](https://github.com/AnaghaDhekne/modelstamp/security/policy)
+
 `modelstamp` adds a verifiable environment manifest to persisted Python machine
 learning models. It keeps the familiar pickle or joblib workflow while making
 dependency changes and artifact corruption visible before deserialization.
@@ -125,7 +129,12 @@ import os
 import modelstamp as ms
 
 key = os.environ["MODELSTAMP_SIGNING_KEY"].encode()
-ms.save(model, "model.joblib", signing_key=key)
+ms.save(
+    model,
+    "model.joblib",
+    signing_key=key,
+    key_id="production-2026-q3",
+)
 model, manifest = ms.load("model.joblib", signing_key=key)
 ```
 
@@ -139,6 +148,20 @@ For CLI verification, name the environment variable containing the key:
 ```bash
 modelstamp verify model.joblib --signing-key-env MODELSTAMP_SIGNING_KEY
 ```
+
+For key rotation, verify through a registry. The authenticated `key_id` chooses
+the correct secret without changing old artifacts:
+
+```python
+keys = {
+    "production-2026-q2": old_key,
+    "production-2026-q3": current_key,
+}
+model, manifest = ms.load("model.joblib", signing_keys=keys)
+```
+
+See the [signing and key-rotation guide](https://anaghadhekne.github.io/modelstamp/signing/)
+for the migration and security model.
 
 ## Complete scikit-learn example
 
@@ -208,11 +231,16 @@ ruff format --check .
 ruff check .
 python -m build
 twine check dist/*
+mkdocs build --strict
 ```
 
 GitHub Actions runs the test suite on Python 3.8 through 3.13. Publishing is
 configured for PyPI Trusted Publishing and runs when a GitHub release is
 published.
+
+Property-based tests exercise malformed manifest structures. Verification
+throughput for representative artifact sizes is recorded in
+[BENCHMARKS.md](BENCHMARKS.md).
 
 Contributions are welcome. See the
 [contribution guide](https://github.com/AnaghaDhekne/modelstamp/blob/main/CONTRIBUTING.md)
