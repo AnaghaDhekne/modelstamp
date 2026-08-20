@@ -143,6 +143,10 @@ artifact digest. A signed artifact cannot be loaded or verified without its
 key. Supplying a key also rejects an unsigned manifest, preventing silent
 downgrades. Keep the key outside source control and separate from the artifact.
 
+HMAC is symmetric, so anyone who can verify with the shared secret can also
+forge a valid manifest. `modelstamp` does not currently provide asymmetric
+public-key verification such as Ed25519 or Sigstore.
+
 For CLI verification, name the environment variable containing the key:
 
 ```bash
@@ -237,6 +241,10 @@ mkdocs build --strict
 GitHub Actions runs the test suite on Python 3.8 through 3.13. Publishing is
 configured for PyPI Trusted Publishing and runs when a GitHub release is
 published.
+
+`pyproject.toml` is the single source of truth for the package version. Update
+only its `project.version` value when preparing a release; `modelstamp.__version__`
+reads the resulting installed distribution metadata.
 
 Property-based tests exercise malformed manifest structures. Verification
 throughput for representative artifact sizes is recorded in
