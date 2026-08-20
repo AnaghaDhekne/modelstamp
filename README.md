@@ -3,7 +3,7 @@
 **Model files with receipts.**
 
 [![Tests](https://github.com/AnaghaDhekne/modelstamp/actions/workflows/test.yml/badge.svg?branch=main&event=push)](https://github.com/AnaghaDhekne/modelstamp/actions/workflows/test.yml?query=branch%3Amain+event%3Apush)
-[![Python 3.8–3.12](https://img.shields.io/badge/python-3.8%E2%80%933.12-blue)](https://www.python.org/)
+[![Python 3.8–3.13](https://img.shields.io/badge/python-3.8%E2%80%933.13-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/AnaghaDhekne/modelstamp/blob/main/LICENSE)
 
 `modelstamp` adds a verifiable environment manifest to persisted Python machine
@@ -114,6 +114,65 @@ modelstamp verify model.joblib
 `check` exits with status 0 for a clean artifact, 1 for a compatibility or
 integrity mismatch, and 2 when the manifest cannot be read.
 
+## Signed manifests
+
+A checksum detects accidental corruption, but someone who can replace both
+files can also create a matching checksum. For artifacts crossing a trust
+boundary, sign the manifest with a secret key:
+
+```python
+import os
+import modelstamp as ms
+
+key = os.environ["MODELSTAMP_SIGNING_KEY"].encode()
+ms.save(model, "model.joblib", signing_key=key)
+model, manifest = ms.load("model.joblib", signing_key=key)
+```
+
+The signature is an HMAC-SHA-256 over the complete manifest, including the
+artifact digest. A signed artifact cannot be loaded or verified without its
+key. Supplying a key also rejects an unsigned manifest, preventing silent
+downgrades. Keep the key outside source control and separate from the artifact.
+
+For CLI verification, name the environment variable containing the key:
+
+```bash
+modelstamp verify model.joblib --signing-key-env MODELSTAMP_SIGNING_KEY
+```
+
+## Complete scikit-learn example
+
+```python
+from pathlib import Path
+
+from sklearn.datasets import load_iris
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
+import modelstamp as ms
+
+X, y = load_iris(return_X_y=True)
+pipeline = make_pipeline(StandardScaler(), LogisticRegression(max_iter=500))
+pipeline.fit(X, y)
+
+path = Path("iris.joblib")
+ms.save(pipeline, path, metadata={"dataset": "iris"})
+restored, manifest = ms.load(path)
+print(restored.predict(X[:3]))
+print(manifest.relevant_packages)
+
+# Safe inspection does not deserialize the model.
+print(ms.check(path))
+
+# Corruption is detected before pickle/joblib can execute anything.
+path.write_bytes(path.read_bytes() + b"changed")
+try:
+    ms.verify(path)
+except ms.ArtifactIntegrityError as exc:
+    print(f"Rejected: {exc}")
+```
+
 ## API at a glance
 
 | Operation | Purpose | Deserializes the model? |
@@ -137,7 +196,7 @@ Security issues should be reported according to the
 
 ## Supported Python versions
 
-Python 3.8 through 3.12 are declared for the initial release. The package has no
+Python 3.8 through 3.13 are declared for the initial release. The package has no
 required runtime dependency; joblib is optional.
 
 ## Development
@@ -151,7 +210,7 @@ python -m build
 twine check dist/*
 ```
 
-GitHub Actions runs the test suite on Python 3.8 through 3.12. Publishing is
+GitHub Actions runs the test suite on Python 3.8 through 3.13. Publishing is
 configured for PyPI Trusted Publishing and runs when a GitHub release is
 published.
 
