@@ -21,3 +21,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Verification and deserialization through the same open artifact file.
 - Relevant-package comparison to avoid warnings about unrelated installations.
 - `inspect`, `check`, and `verify` command-line commands.
+- Optional HMAC-SHA-256 manifest authentication through `signing_key`.
+- JSON-normalized metadata, locked manifest inspection, and clean CLI handling
+  for filesystem errors.
+- Python 3.13 testing and typed-package metadata.
