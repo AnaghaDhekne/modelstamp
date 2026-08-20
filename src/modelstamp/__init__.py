@@ -1,20 +1,21 @@
-"""modelstamp -- version-aware persistence for scikit-learn and friends.
+"""Integrity-checked persistence for Python machine-learning models.
 
-Wrap ``joblib.dump`` / ``joblib.load`` (or stdlib pickle) so every saved model
-carries a manifest of the environment it was trained in. On load, modelstamp
-diffs the current environment and warns you when a package changed underneath
-you -- the silent-prediction-drift bug that scikit-learn's own docs tell you
-to guard against by hand.
+``modelstamp`` saves a model with a sidecar manifest that records its checksum,
+serialization backend, model details, and runtime dependency versions. The
+artifact is verified before deserialization, and environment differences can
+warn or block loading.
 
-    import modelstamp as ms
-
-    ms.save(pipeline, "model.pkl", metadata={"cv_accuracy": 0.94})
-    model, info = ms.load("model.pkl")   # warns if sklearn/numpy/... differ
+Example
+-------
+>>> import modelstamp as ms
+>>> ms.save(model, "model.joblib", metadata={"validation_roc_auc": 0.883})
+>>> model, manifest = ms.load("model.joblib")
+>>> ms.verify("model.joblib")
 """
 
 from __future__ import annotations
 
-from ._manifest import Manifest, MismatchReport, PackageChange
+from ._manifest import Manifest, MismatchReport
 from .core import check, inspect, load, save, verify
 from .exceptions import (
     ArtifactIntegrityError,
@@ -27,18 +28,21 @@ from .exceptions import (
 __version__ = "0.1.0"
 
 __all__ = [
+    # Operations
+    "save",
+    "load",
+    "verify",
+    "check",
+    "inspect",
+    # Result types
+    "Manifest",
+    "MismatchReport",
+    # Errors and warnings
     "ArtifactIntegrityError",
     "EnvironmentMismatchError",
     "EnvironmentMismatchWarning",
     "ManifestError",
     "ModelStampWarning",
-    "Manifest",
-    "MismatchReport",
-    "PackageChange",
+    # Package metadata
     "__version__",
-    "check",
-    "inspect",
-    "load",
-    "save",
-    "verify",
 ]

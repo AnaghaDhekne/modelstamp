@@ -23,12 +23,9 @@ from .exceptions import (
 PathLike = Union[str, Path]
 
 try:
-    import joblib  # type: ignore
-
-    _HAS_JOBLIB = True
+    import joblib as _joblib
 except ImportError:  # pragma: no cover
-    joblib = None  # type: ignore
-    _HAS_JOBLIB = False
+    _joblib = None
 
 
 def _manifest_path(model_path: Path) -> Path:
@@ -37,10 +34,10 @@ def _manifest_path(model_path: Path) -> Path:
 
 def _resolve_save_backend(backend: str) -> str:
     if backend == "auto":
-        return "joblib" if _HAS_JOBLIB else "pickle"
+        return "joblib" if _joblib is not None else "pickle"
     if backend not in ("joblib", "pickle"):
         raise ValueError("backend must be 'auto', 'joblib', or 'pickle'")
-    if backend == "joblib" and not _HAS_JOBLIB:
+    if backend == "joblib" and _joblib is None:
         raise ImportError("backend='joblib' requires the optional joblib package")
     return backend
 
@@ -55,7 +52,7 @@ def _resolve_load_backend(requested: str, manifest: Manifest) -> str:
             raise ManifestError(
                 f"requested backend {backend!r} differs from recorded {recorded!r}"
             )
-    if backend == "joblib" and not _HAS_JOBLIB:
+    if backend == "joblib" and _joblib is None:
         raise ImportError(
             "this artifact was saved with joblib; install modelstamp[joblib]"
         )
@@ -64,7 +61,9 @@ def _resolve_load_backend(requested: str, manifest: Manifest) -> str:
 
 def _dump(obj: Any, path: Path, backend: str) -> None:
     if backend == "joblib":
-        joblib.dump(obj, path)  # type: ignore[union-attr]
+        if _joblib is None:  # Defensive guard for direct internal calls.
+            raise ImportError("joblib is not installed")
+        _joblib.dump(obj, path)
     else:
         with path.open("wb") as stream:
             pickle.dump(obj, stream, protocol=pickle.HIGHEST_PROTOCOL)
@@ -72,7 +71,9 @@ def _dump(obj: Any, path: Path, backend: str) -> None:
 
 def _load_object(path: Path, backend: str) -> Any:
     if backend == "joblib":
-        return joblib.load(path)  # type: ignore[union-attr]
+        if _joblib is None:  # Defensive guard for direct internal calls.
+            raise ImportError("joblib is not installed")
+        return _joblib.load(path)
     with path.open("rb") as stream:
         return pickle.load(stream)
 
@@ -90,7 +91,13 @@ def _model_details(obj: Any) -> Tuple[Dict[str, object], List[str]]:
     details: Dict[str, object] = {"class": cls.__name__, "module": cls.__module__}
     modules = {cls.__module__.split(".", 1)[0]}
     steps = getattr(obj, "steps", None)
-    if isinstance(steps, list):
+    if isinstance(steps, list) and all(
+        isinstance(step, tuple)
+        and len(step) == 2
+        and isinstance(step[0], str)
+        and bool(step[0])
+        for step in steps
+    ):
         components = []
         for name, component in steps:
             component_cls = type(component)
@@ -128,12 +135,9 @@ def _atomic_write_text(path: Path, content: str) -> None:
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, path)
-    except BaseException:
-        try:
+    finally:
+        if os.path.exists(temporary):
             os.unlink(temporary)
-        except FileNotFoundError:
-            pass
-        raise
 
 
 def save(

@@ -4,15 +4,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from typing import List, Optional
 
+from . import __version__
 from .core import check, inspect, verify
 from .exceptions import ArtifactIntegrityError, ManifestError
 
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="modelstamp")
-    parser.add_argument("--version", action="version", version="modelstamp 0.1.0")
+    parser.add_argument(
+        "--version", action="version", version=f"modelstamp {__version__}"
+    )
     commands = parser.add_subparsers(dest="command", required=True)
     for name, help_text in (
         ("inspect", "print the manifest without loading the model"),
@@ -38,7 +42,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(report)
         return 1 if report else 0
     except (ArtifactIntegrityError, ManifestError) as exc:
-        print(f"modelstamp: {exc}")
+        print(f"modelstamp: {exc}", file=sys.stderr)
         return 2
 
 
