@@ -11,8 +11,9 @@ import tempfile
 import threading
 import warnings
 from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, BinaryIO, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, BinaryIO, Dict, Iterator, List, Mapping, Optional, Tuple, Union
 
 from ._environment import capture_environment
 from ._manifest import Manifest, MismatchReport
@@ -25,7 +26,15 @@ from .exceptions import (
 
 PathLike = Union[str, Path]
 SigningKey = Union[bytes, bytearray, memoryview]
-_THREAD_LOCKS: Dict[str, threading.RLock] = {}
+
+
+@dataclass
+class _ThreadLockEntry:
+    lock: threading.RLock
+    users: int = 0
+
+
+_THREAD_LOCKS: Dict[str, _ThreadLockEntry] = {}
 _THREAD_LOCKS_GUARD = threading.Lock()
 
 try:
@@ -102,19 +111,57 @@ def _signing_key_bytes(signing_key: Optional[SigningKey]) -> Optional[bytes]:
     return key
 
 
-def _sign_manifest(manifest: Manifest, signing_key: bytes) -> None:
-    manifest.signature = {
-        "algorithm": "hmac-sha256",
-        "digest": hmac.new(
-            signing_key, manifest.signing_bytes(), hashlib.sha256
-        ).hexdigest(),
-    }
+def _validate_key_id(key_id: Optional[str]) -> Optional[str]:
+    if key_id is None:
+        return None
+    if not isinstance(key_id, str) or not key_id.strip():
+        raise TypeError("key_id must be a non-empty string")
+    if len(key_id) > 128:
+        raise ValueError("key_id must be at most 128 characters")
+    return key_id
+
+
+def _sign_manifest(
+    manifest: Manifest, signing_key: bytes, key_id: Optional[str]
+) -> None:
+    signature = {"algorithm": "hmac-sha256"}
+    if key_id is not None:
+        signature["key_id"] = key_id
+    manifest.signature = signature
+    signature["digest"] = hmac.new(
+        signing_key, manifest.signing_bytes(), hashlib.sha256
+    ).hexdigest()
+
+
+def _select_verification_key(
+    manifest: Manifest,
+    signing_key: Optional[SigningKey],
+    signing_keys: Optional[Mapping[str, SigningKey]],
+) -> Optional[bytes]:
+    if signing_key is not None and signing_keys is not None:
+        raise ValueError("provide signing_key or signing_keys, not both")
+    if signing_keys is None:
+        return _signing_key_bytes(signing_key)
+    if not isinstance(signing_keys, Mapping):
+        raise TypeError("signing_keys must be a mapping of key IDs to keys")
+    if manifest.signature is None:
+        return b"registry-requires-a-signed-manifest"
+    key_id = manifest.signature.get("key_id")
+    if key_id is None:
+        raise ArtifactIntegrityError(
+            "signed manifest has no key_id; provide signing_key directly"
+        )
+    if key_id not in signing_keys:
+        raise ArtifactIntegrityError(f"no signing key registered for key_id {key_id!r}")
+    return _signing_key_bytes(signing_keys[key_id])
 
 
 def _verify_manifest_signature(
-    manifest: Manifest, signing_key: Optional[SigningKey]
+    manifest: Manifest,
+    signing_key: Optional[SigningKey],
+    signing_keys: Optional[Mapping[str, SigningKey]],
 ) -> None:
-    key = _signing_key_bytes(signing_key)
+    key = _select_verification_key(manifest, signing_key, signing_keys)
     if manifest.signature is None:
         if key is not None:
             raise ArtifactIntegrityError("manifest is not signed")
@@ -146,36 +193,46 @@ def _artifact_lock(model_path: Path) -> Iterator[None]:
     """Serialize operations on one artifact across local processes."""
     identity = str(model_path.resolve(strict=False))
     with _THREAD_LOCKS_GUARD:
-        thread_lock = _THREAD_LOCKS.setdefault(identity, threading.RLock())
+        entry = _THREAD_LOCKS.get(identity)
+        if entry is None:
+            entry = _ThreadLockEntry(threading.RLock())
+            _THREAD_LOCKS[identity] = entry
+        entry.users += 1
     lock_name = (
         hashlib.sha256(identity.encode("utf-8", errors="surrogatepass")).hexdigest()
         + ".lock"
     )
     lock_root = Path(tempfile.gettempdir()) / "modelstamp-locks"
-    lock_root.mkdir(mode=0o700, parents=True, exist_ok=True)
-    with thread_lock, (lock_root / lock_name).open("a+b") as stream:
-        if os.name == "nt":  # pragma: no cover - exercised on Windows.
-            import msvcrt
+    try:
+        lock_root.mkdir(mode=0o700, parents=True, exist_ok=True)
+        with entry.lock, (lock_root / lock_name).open("a+b") as stream:
+            if os.name == "nt":  # pragma: no cover - exercised on Windows.
+                import msvcrt
 
-            stream.seek(0)
-            if not stream.read(1):
-                stream.write(b"\0")
-                stream.flush()
-            stream.seek(0)
-            msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
-            try:
-                yield
-            finally:
                 stream.seek(0)
-                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
-        else:
-            import fcntl
+                if not stream.read(1):
+                    stream.write(b"\0")
+                    stream.flush()
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+                try:
+                    yield
+                finally:
+                    stream.seek(0)
+                    msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
 
-            fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
-            try:
-                yield
-            finally:
-                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+                fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+                try:
+                    yield
+                finally:
+                    fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+    finally:
+        with _THREAD_LOCKS_GUARD:
+            entry.users -= 1
+            if entry.users == 0 and _THREAD_LOCKS.get(identity) is entry:
+                del _THREAD_LOCKS[identity]
 
 
 def _model_details(obj: Any) -> Tuple[Dict[str, object], List[str]]:
@@ -280,10 +337,31 @@ def save(
     backend: str = "auto",
     include_git: bool = True,
     signing_key: Optional[SigningKey] = None,
+    key_id: Optional[str] = None,
 ) -> Manifest:
-    """Serialize an object and write a verified environment manifest beside it."""
+    """Serialize an object and write its environment manifest atomically.
+
+    Args:
+        obj: Python object to persist.
+        path: Destination artifact path.
+        metadata: Optional JSON-compatible model metadata.
+        backend: ``"auto"``, ``"pickle"``, or ``"joblib"``.
+        include_git: Record the current Git commit and dirty state when available.
+        signing_key: Optional bytes-like HMAC secret.
+        key_id: Optional identifier stored and authenticated with the signature.
+
+    Returns:
+        The normalized manifest written beside the artifact.
+
+    Raises:
+        TypeError: Metadata, signing key, or key identifier has an invalid type.
+        ValueError: An option is invalid or ``key_id`` lacks a signing key.
+    """
     normalized_metadata = _normalize_metadata(metadata)
     normalized_signing_key = _signing_key_bytes(signing_key)
+    normalized_key_id = _validate_key_id(key_id)
+    if normalized_key_id is not None and normalized_signing_key is None:
+        raise ValueError("key_id requires signing_key")
 
     model_path = Path(path)
     model_path.parent.mkdir(parents=True, exist_ok=True)
@@ -315,7 +393,7 @@ def save(
             metadata=normalized_metadata,
         )
         if normalized_signing_key is not None:
-            _sign_manifest(manifest, normalized_signing_key)
+            _sign_manifest(manifest, normalized_signing_key, normalized_key_id)
         manifest_path = _manifest_path(model_path)
         staged_manifest = _stage_text(manifest_path, manifest.to_json())
         with _artifact_lock(model_path):
@@ -360,12 +438,23 @@ def _verify_stream(stream: BinaryIO, manifest: Manifest) -> None:
 def verify(
     path: PathLike,
     signing_key: Optional[SigningKey] = None,
+    signing_keys: Optional[Mapping[str, SigningKey]] = None,
 ) -> None:
-    """Verify artifact size and SHA-256 without deserializing it."""
+    """Verify an artifact without deserializing it.
+
+    Args:
+        path: Artifact whose sidecar manifest should be verified.
+        signing_key: Direct HMAC key for legacy or single-key deployments.
+        signing_keys: Registry mapping authenticated key IDs to HMAC keys.
+
+    Raises:
+        ArtifactIntegrityError: The artifact or signature does not match.
+        ManifestError: The sidecar is missing or malformed.
+    """
     model_path = Path(path)
     with _artifact_lock(model_path):
         manifest = _read_manifest(model_path)
-        _verify_manifest_signature(manifest, signing_key)
+        _verify_manifest_signature(manifest, signing_key, signing_keys)
         if not model_path.is_file():
             raise ArtifactIntegrityError(f"artifact not found: {model_path}")
         with model_path.open("rb") as stream:
@@ -378,14 +467,33 @@ def load(
     backend: str = "auto",
     return_manifest: bool = True,
     signing_key: Optional[SigningKey] = None,
+    signing_keys: Optional[Mapping[str, SigningKey]] = None,
 ) -> Union[Any, Tuple[Any, Manifest]]:
-    """Verify, compatibility-check, then load a model artifact."""
+    """Verify, compatibility-check, then deserialize an artifact.
+
+    Args:
+        path: Artifact to load.
+        on_mismatch: ``"warn"``, ``"raise"``, or ``"ignore"`` for runtime
+            compatibility differences.
+        backend: ``"auto"``, ``"pickle"``, or ``"joblib"``.
+        return_manifest: Return ``(object, manifest)`` instead of only the object.
+        signing_key: Direct HMAC key for legacy or single-key deployments.
+        signing_keys: Registry mapping authenticated key IDs to HMAC keys.
+
+    Returns:
+        The deserialized object, optionally paired with its manifest.
+
+    Raises:
+        ArtifactIntegrityError: Artifact or signature verification fails.
+        EnvironmentMismatchError: Runtime differences exist under ``"raise"``.
+        ManifestError: The sidecar is missing, malformed, or incompatible.
+    """
     if on_mismatch not in ("warn", "raise", "ignore"):
         raise ValueError("on_mismatch must be 'warn', 'raise', or 'ignore'")
     model_path = Path(path)
     with _artifact_lock(model_path):
         manifest = _read_manifest(model_path)
-        _verify_manifest_signature(manifest, signing_key)
+        _verify_manifest_signature(manifest, signing_key, signing_keys)
         resolved = _resolve_load_backend(backend, manifest)
         if not model_path.is_file():
             raise ArtifactIntegrityError(f"artifact not found: {model_path}")
@@ -401,20 +509,46 @@ def load(
 
 
 def inspect(path: PathLike) -> Manifest:
-    """Read a manifest without loading or verifying the model."""
+    """Read a sidecar manifest without verifying or deserializing the artifact.
+
+    Args:
+        path: Artifact path used to locate the sidecar.
+
+    Returns:
+        The validated manifest.
+
+    Raises:
+        ManifestError: The sidecar is missing or malformed.
+    """
     model_path = Path(path)
     with _artifact_lock(model_path):
         return _read_manifest(model_path)
 
 
-def check(path: PathLike, signing_key: Optional[SigningKey] = None) -> MismatchReport:
-    """Check both artifact integrity and runtime compatibility."""
+def check(
+    path: PathLike,
+    signing_key: Optional[SigningKey] = None,
+    signing_keys: Optional[Mapping[str, SigningKey]] = None,
+) -> MismatchReport:
+    """Check integrity and runtime compatibility without deserializing.
+
+    Args:
+        path: Artifact to check.
+        signing_key: Direct HMAC key for legacy or single-key deployments.
+        signing_keys: Registry mapping authenticated key IDs to HMAC keys.
+
+    Returns:
+        A report whose truth value indicates a mismatch.
+
+    Raises:
+        ManifestError: The sidecar is missing or malformed.
+    """
     model_path = Path(path)
     with _artifact_lock(model_path):
         manifest = _read_manifest(model_path)
         report = manifest.compare_to_current()
         try:
-            _verify_manifest_signature(manifest, signing_key)
+            _verify_manifest_signature(manifest, signing_key, signing_keys)
             if not model_path.is_file():
                 raise ArtifactIntegrityError(f"artifact not found: {model_path}")
             with model_path.open("rb") as stream:
