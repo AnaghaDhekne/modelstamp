@@ -19,6 +19,7 @@ TRACKED_PACKAGES: List[str] = [
     "lightgbm",
     "catboost",
     "joblib",
+    "statsmodels",
 ]
 
 

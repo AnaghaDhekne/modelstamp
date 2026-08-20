@@ -8,8 +8,9 @@ import os
 import pickle
 import tempfile
 import warnings
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, BinaryIO, Dict, Iterator, List, Optional, Tuple, Union
 
 from ._environment import capture_environment
 from ._manifest import Manifest, MismatchReport
@@ -69,13 +70,12 @@ def _dump(obj: Any, path: Path, backend: str) -> None:
             pickle.dump(obj, stream, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def _load_object(path: Path, backend: str) -> Any:
+def _load_object(stream: BinaryIO, backend: str) -> Any:
     if backend == "joblib":
         if _joblib is None:  # Defensive guard for direct internal calls.
             raise ImportError("joblib is not installed")
-        return _joblib.load(path)
-    with path.open("rb") as stream:
-        return pickle.load(stream)
+        return _joblib.load(stream)
+    return pickle.load(stream)
 
 
 def _sha256(path: Path) -> str:
@@ -84,6 +84,40 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+@contextmanager
+def _artifact_lock(model_path: Path) -> Iterator[None]:
+    """Serialize operations on one artifact across local processes."""
+    identity = str(model_path.resolve(strict=False)).encode(
+        "utf-8", errors="surrogatepass"
+    )
+    lock_name = hashlib.sha256(identity).hexdigest() + ".lock"
+    lock_root = Path(tempfile.gettempdir()) / "modelstamp-locks"
+    lock_root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    with (lock_root / lock_name).open("a+b") as stream:
+        if os.name == "nt":  # pragma: no cover - exercised on Windows.
+            import msvcrt
+
+            stream.seek(0)
+            if not stream.read(1):
+                stream.write(b"\0")
+                stream.flush()
+            stream.seek(0)
+            msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+            try:
+                yield
+            finally:
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
 def _model_details(obj: Any) -> Tuple[Dict[str, object], List[str]]:
@@ -114,14 +148,18 @@ def _model_details(obj: Any) -> Tuple[Dict[str, object], List[str]]:
     relevant = set()
     if "sklearn" in modules:
         relevant.update(("scikit-learn", "numpy", "scipy", "joblib"))
-    mapping = {
-        "numpy": "numpy",
-        "pandas": "pandas",
-        "xgboost": "xgboost",
-        "lightgbm": "lightgbm",
-        "catboost": "catboost",
+    bundles = {
+        "numpy": {"numpy"},
+        "scipy": {"numpy", "scipy"},
+        "pandas": {"numpy", "pandas"},
+        "joblib": {"joblib"},
+        "xgboost": {"numpy", "scipy", "xgboost"},
+        "lightgbm": {"lightgbm", "numpy", "scipy"},
+        "catboost": {"catboost", "numpy"},
+        "statsmodels": {"numpy", "pandas", "scipy", "statsmodels"},
     }
-    relevant.update(mapping[module] for module in modules if module in mapping)
+    for module in modules:
+        relevant.update(bundles.get(module, set()))
     return details, sorted(relevant)
 
 
@@ -158,22 +196,23 @@ def _commit_artifact_pair(
 
     try:
         os.replace(staged_model, model_path)
-        try:
-            # Two paths cannot be replaced as one filesystem transaction. Staging
-            # both first keeps this window small; rollback prevents an orphan.
-            os.replace(staged_manifest, manifest_path)
-        except BaseException:
-            model_path.unlink(missing_ok=True)
-            if backup_path is not None:
-                os.replace(backup_path, model_path)
-            raise
+        # Two paths cannot be replaced as one filesystem transaction. Staging
+        # both first keeps this window small; rollback prevents an orphan.
+        os.replace(staged_manifest, manifest_path)
     except BaseException:
-        if backup_path is not None and backup_path.exists() and not model_path.exists():
-            os.replace(backup_path, model_path)
-        raise
-    finally:
+        model_path.unlink(missing_ok=True)
         if backup_path is not None:
-            backup_path.unlink(missing_ok=True)
+            try:
+                os.replace(backup_path, model_path)
+                backup_path = None
+            except BaseException as rollback_error:
+                raise RuntimeError(
+                    "artifact commit and rollback both failed; "
+                    f"the previous model is preserved at {backup_path}"
+                ) from rollback_error
+        raise
+    if backup_path is not None:
+        backup_path.unlink(missing_ok=True)
 
 
 def save(
@@ -192,6 +231,8 @@ def save(
 
     model_path = Path(path)
     model_path.parent.mkdir(parents=True, exist_ok=True)
+    if model_path.exists() and not model_path.is_file():
+        raise IsADirectoryError(f"artifact path is not a regular file: {model_path}")
     resolved = _resolve_save_backend(backend)
     descriptor, temporary_name = tempfile.mkstemp(
         prefix=f".{model_path.name}.", suffix=".tmp", dir=str(model_path.parent)
@@ -202,6 +243,9 @@ def save(
     try:
         _dump(obj, temporary_path, resolved)
         model_details, relevant = _model_details(obj)
+        environment = capture_environment(include_git=include_git)
+        installed_packages = dict(environment["packages"])
+        relevant = [name for name in relevant if name in installed_packages]
         manifest = Manifest(
             artifact={
                 "filename": model_path.name,
@@ -210,18 +254,23 @@ def save(
             },
             serialization={"backend": resolved},
             model=model_details,
-            environment=capture_environment(include_git=include_git),
+            environment=environment,
             relevant_packages=relevant,
             metadata=dict(metadata) if metadata else {},
         )
         manifest_path = _manifest_path(model_path)
         staged_manifest = _stage_text(manifest_path, manifest.to_json())
-        _commit_artifact_pair(
-            temporary_path,
-            model_path,
-            staged_manifest,
-            manifest_path,
-        )
+        with _artifact_lock(model_path):
+            if model_path.exists() and not model_path.is_file():
+                raise IsADirectoryError(
+                    f"artifact path is not a regular file: {model_path}"
+                )
+            _commit_artifact_pair(
+                temporary_path,
+                model_path,
+                staged_manifest,
+                manifest_path,
+            )
         return manifest
     finally:
         if temporary_path.exists():
@@ -230,24 +279,35 @@ def save(
             staged_manifest.unlink(missing_ok=True)
 
 
-def verify(path: PathLike, manifest: Optional[Manifest] = None) -> None:
-    """Verify artifact size and SHA-256 without deserializing it."""
-    model_path = Path(path)
-    manifest = manifest or _read_manifest(model_path)
-    if not model_path.is_file():
-        raise ArtifactIntegrityError(f"artifact not found: {model_path}")
+def _verify_stream(stream: BinaryIO, manifest: Manifest) -> None:
     expected_size = manifest.artifact["size_bytes"]
-    actual_size = model_path.stat().st_size
+    actual_size = os.fstat(stream.fileno()).st_size
     if actual_size != expected_size:
         raise ArtifactIntegrityError(
             f"size mismatch: expected {expected_size}, found {actual_size}"
         )
+    digest = hashlib.sha256()
+    stream.seek(0)
+    for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+        digest.update(chunk)
+    actual_hash = digest.hexdigest()
     expected_hash = manifest.artifact["sha256"]
-    actual_hash = _sha256(model_path)
     if actual_hash != expected_hash:
         raise ArtifactIntegrityError(
             f"SHA-256 mismatch: expected {expected_hash}, found {actual_hash}"
         )
+    stream.seek(0)
+
+
+def verify(path: PathLike, manifest: Optional[Manifest] = None) -> None:
+    """Verify artifact size and SHA-256 without deserializing it."""
+    model_path = Path(path)
+    with _artifact_lock(model_path):
+        manifest = manifest or _read_manifest(model_path)
+        if not model_path.is_file():
+            raise ArtifactIntegrityError(f"artifact not found: {model_path}")
+        with model_path.open("rb") as stream:
+            _verify_stream(stream, manifest)
 
 
 def load(
@@ -260,15 +320,19 @@ def load(
     if on_mismatch not in ("warn", "raise", "ignore"):
         raise ValueError("on_mismatch must be 'warn', 'raise', or 'ignore'")
     model_path = Path(path)
-    manifest = _read_manifest(model_path)
-    verify(model_path, manifest)
-    resolved = _resolve_load_backend(backend, manifest)
-    report = manifest.compare_to_current()
-    if report and on_mismatch != "ignore":
-        if on_mismatch == "raise":
-            raise EnvironmentMismatchError(report)
-        warnings.warn(str(report), EnvironmentMismatchWarning, stacklevel=2)
-    obj = _load_object(model_path, resolved)
+    with _artifact_lock(model_path):
+        manifest = _read_manifest(model_path)
+        resolved = _resolve_load_backend(backend, manifest)
+        if not model_path.is_file():
+            raise ArtifactIntegrityError(f"artifact not found: {model_path}")
+        with model_path.open("rb") as stream:
+            _verify_stream(stream, manifest)
+            report = manifest.compare_to_current()
+            if report and on_mismatch != "ignore":
+                if on_mismatch == "raise":
+                    raise EnvironmentMismatchError(report)
+                warnings.warn(str(report), EnvironmentMismatchWarning, stacklevel=2)
+            obj = _load_object(stream, resolved)
     return (obj, manifest) if return_manifest else obj
 
 
@@ -280,13 +344,17 @@ def inspect(path: PathLike) -> Manifest:
 def check(path: PathLike) -> MismatchReport:
     """Check both artifact integrity and runtime compatibility."""
     model_path = Path(path)
-    manifest = _read_manifest(model_path)
-    report = manifest.compare_to_current()
-    try:
-        verify(model_path, manifest)
-    except ArtifactIntegrityError as exc:
-        report.integrity_error = str(exc)
-    return report
+    with _artifact_lock(model_path):
+        manifest = _read_manifest(model_path)
+        report = manifest.compare_to_current()
+        try:
+            if not model_path.is_file():
+                raise ArtifactIntegrityError(f"artifact not found: {model_path}")
+            with model_path.open("rb") as stream:
+                _verify_stream(stream, manifest)
+        except ArtifactIntegrityError as exc:
+            report.integrity_error = str(exc)
+        return report
 
 
 def _read_manifest(model_path: Path) -> Manifest:
@@ -295,5 +363,5 @@ def _read_manifest(model_path: Path) -> Manifest:
         raise ManifestError(f"no manifest found at {manifest_path}")
     try:
         return Manifest.from_json(manifest_path.read_text(encoding="utf-8"))
-    except OSError as exc:
+    except (OSError, UnicodeError) as exc:
         raise ManifestError(f"cannot read manifest at {manifest_path}: {exc}") from exc
