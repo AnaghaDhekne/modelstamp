@@ -222,7 +222,11 @@ def test_load_uses_the_verified_open_file(tmp_path, model, monkeypatch):
     real_load = core._load_object
 
     def replace_path_then_load(stream, backend):
-        core.os.replace(replacement_path, path)
+        try:
+            core.os.replace(replacement_path, path)
+        except PermissionError:
+            # Windows prevents replacing a file while modelstamp holds it open.
+            pass
         return real_load(stream, backend)
 
     monkeypatch.setattr(core, "_load_object", replace_path_then_load)
