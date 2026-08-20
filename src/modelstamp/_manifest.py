@@ -74,10 +74,11 @@ class Manifest:
     model: Dict[str, object]
     relevant_packages: List[str]
     metadata: Dict[str, object] = field(default_factory=dict)
+    signature: Optional[Dict[str, str]] = None
     schema_version: int = MANIFEST_SCHEMA_VERSION
 
     def to_dict(self) -> Dict[str, object]:
-        return {
+        data = {
             "schema_version": self.schema_version,
             "artifact": self.artifact,
             "serialization": self.serialization,
@@ -86,9 +87,26 @@ class Manifest:
             "relevant_packages": self.relevant_packages,
             "metadata": self.metadata,
         }
+        if self.signature is not None:
+            data["signature"] = self.signature
+        return data
+
+    def signing_bytes(self) -> bytes:
+        """Return a stable representation used by keyed manifest signatures."""
+        data = self.to_dict()
+        data.pop("signature", None)
+        return json.dumps(
+            data,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")
 
     def to_json(self, indent: int = 2) -> str:
-        return json.dumps(self.to_dict(), indent=indent, sort_keys=False)
+        return json.dumps(
+            self.to_dict(), indent=indent, sort_keys=False, allow_nan=False
+        )
 
     @classmethod
     def from_dict(cls, data: Dict[str, object]) -> "Manifest":
@@ -138,6 +156,29 @@ class Manifest:
         if serialization.get("backend") not in ("pickle", "joblib"):
             raise ManifestError("serialization.backend must be pickle or joblib")
 
+        signature_data = data.get("signature")
+        signature: Optional[Dict[str, str]] = None
+        if signature_data is not None:
+            if not isinstance(signature_data, dict):
+                raise ManifestError("signature must be a JSON object")
+            if set(signature_data) != {"algorithm", "digest"}:
+                raise ManifestError("signature must contain algorithm and digest")
+            if signature_data.get("algorithm") != "hmac-sha256":
+                raise ManifestError("signature.algorithm must be hmac-sha256")
+            signature_digest = _nonempty_string(
+                signature_data.get("digest"), "signature.digest"
+            )
+            if len(signature_digest) != 64 or any(
+                char not in "0123456789abcdef" for char in signature_digest
+            ):
+                raise ManifestError(
+                    "signature.digest must be 64 lowercase hexadecimal characters"
+                )
+            signature = {
+                "algorithm": "hmac-sha256",
+                "digest": signature_digest,
+            }
+
         model = dict(data["model"])
         _nonempty_string(model.get("class"), "model.class")
         _nonempty_string(model.get("module"), "model.module")
@@ -186,6 +227,7 @@ class Manifest:
             model=model,
             relevant_packages=list(relevant),
             metadata=dict(data["metadata"]),
+            signature=signature,
             schema_version=version,
         )
 
