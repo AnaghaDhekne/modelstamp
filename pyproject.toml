@@ -4,6 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "modelstamp"
+# Single source of truth; modelstamp.__version__ reads installed metadata.
 version = "0.1.0"
 description = "Save ML models with integrity checks and reproducible environment manifests."
 readme = "README.md"
