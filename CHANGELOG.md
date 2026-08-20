@@ -35,3 +35,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Current Node.js 24-based GitHub Actions versions.
 - Explicit symmetric-HMAC trust-boundary guidance and single-source release
   version instructions.
+- Manifest authentication before environment comparison in `check()`.
+- `python -m modelstamp` CLI support and clearer unauthenticated-inspection
+  guidance.
+- Rejection of signing-key identifiers with ambiguous surrounding whitespace.
