@@ -43,8 +43,18 @@ dependencies = []
 
 [project.optional-dependencies]
 joblib = ["joblib>=1.0"]
-test = ["pytest>=7.0", "joblib>=1.0"]
-dev = ["pytest>=7.0", "joblib>=1.0", "build", "twine", "ruff"]
+test = ["pytest>=7.0", "hypothesis>=6.0", "joblib>=1.0"]
+docs = ["mkdocs>=1.5", "mkdocstrings[python]>=0.24"]
+dev = [
+    "pytest>=7.0",
+    "hypothesis>=6.0",
+    "joblib>=1.0",
+    "build",
+    "twine",
+    "ruff",
+    "mkdocs>=1.5",
+    "mkdocstrings[python]>=0.24",
+]
 
 [project.scripts]
 modelstamp = "modelstamp.cli:main"
@@ -55,7 +65,7 @@ Repository = "https://github.com/AnaghaDhekne/modelstamp"
 Issues = "https://github.com/AnaghaDhekne/modelstamp/issues"
 Changelog = "https://github.com/AnaghaDhekne/modelstamp/blob/main/CHANGELOG.md"
 Security = "https://github.com/AnaghaDhekne/modelstamp/security/policy"
-Documentation = "https://github.com/AnaghaDhekne/modelstamp#readme"
+Documentation = "https://anaghadhekne.github.io/modelstamp/"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/modelstamp"]
