@@ -8,7 +8,8 @@ version = "0.1.0"
 description = "Save ML models with integrity checks and reproducible environment manifests."
 readme = "README.md"
 requires-python = ">=3.8"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Anagha Dhekne", email = "anaghagdhekne7@gmail.com" }]
 keywords = [
     "scikit-learn",
@@ -32,6 +33,9 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Typing :: Typed",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -51,6 +55,7 @@ Repository = "https://github.com/AnaghaDhekne/modelstamp"
 Issues = "https://github.com/AnaghaDhekne/modelstamp/issues"
 Changelog = "https://github.com/AnaghaDhekne/modelstamp/blob/main/CHANGELOG.md"
 Security = "https://github.com/AnaghaDhekne/modelstamp/security/policy"
+Documentation = "https://github.com/AnaghaDhekne/modelstamp#readme"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/modelstamp"]
