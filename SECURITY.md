@@ -24,3 +24,9 @@ is available, the issue can be disclosed publicly with appropriate credit.
 is not a signature: anyone able to replace both files can create a matching
 pair. Pickle and joblib may execute arbitrary code while loading, so artifacts
 must still come from a trusted source.
+
+For artifacts crossing a trust boundary, use the optional `signing_key`
+argument. It authenticates the complete manifest and artifact digest with
+HMAC-SHA-256. Protect the key independently of the artifact. Signed manifests
+detect unauthorized replacement, but they do not sandbox pickle/joblib or
+prevent malicious code in an artifact signed by a compromised or untrusted key.
