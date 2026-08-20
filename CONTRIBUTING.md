@@ -26,7 +26,7 @@ mkdocs build --strict
 
 - Keep each change focused and explain the user-facing reason for it.
 - Add regression tests for bug fixes and tests for new behavior.
-- Preserve compatibility with Python 3.8 through 3.12.
+- Preserve compatibility with Python 3.8 through 3.13.
 - Update the README or changelog when public behavior changes.
 - Never include real model artifacts, credentials, or private training data.
 
