@@ -497,6 +497,18 @@ def test_signed_manifest_requires_the_correct_key(tmp_path, model):
     assert report.integrity_error == "manifest HMAC signature is invalid"
 
 
+def test_check_authenticates_before_comparing_environment(tmp_path, model, monkeypatch):
+    path = tmp_path / "model.pkl"
+    ms.save(model, path, backend="pickle", signing_key=b"correct-key")
+
+    def fail_if_called(self):
+        raise AssertionError("untrusted environment data was compared")
+
+    monkeypatch.setattr(core.Manifest, "compare_to_current", fail_if_called)
+    report = ms.check(path, signing_key=b"wrong-key")
+    assert report.integrity_error == "manifest HMAC signature is invalid"
+
+
 def test_manifest_tampering_invalidates_signature(tmp_path, model):
     path = tmp_path / "model.pkl"
     key = b"correct-key"
@@ -529,6 +541,8 @@ def test_invalid_key_ids_and_key_arguments_are_rejected(tmp_path, model):
         ms.save(model, path, backend="pickle", key_id="current")
     with pytest.raises(TypeError, match="non-empty string"):
         ms.save(model, path, backend="pickle", signing_key=b"key", key_id="")
+    with pytest.raises(ValueError, match="whitespace"):
+        ms.save(model, path, backend="pickle", signing_key=b"key", key_id=" current ")
 
     ms.save(
         model,
