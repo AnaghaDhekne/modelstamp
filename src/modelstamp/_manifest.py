@@ -94,7 +94,15 @@ class Manifest:
     def signing_bytes(self) -> bytes:
         """Return a stable representation used by keyed manifest signatures."""
         data = self.to_dict()
-        data.pop("signature", None)
+        signature = data.pop("signature", None)
+        # Legacy signatures covered the manifest without a signature object.
+        # Keyed signatures also bind the algorithm and key identifier so an
+        # attacker cannot redirect verification to a different registry entry.
+        if isinstance(signature, dict) and "key_id" in signature:
+            data["signature"] = {
+                "algorithm": signature["algorithm"],
+                "key_id": signature["key_id"],
+            }
         return json.dumps(
             data,
             sort_keys=True,
@@ -161,8 +169,13 @@ class Manifest:
         if signature_data is not None:
             if not isinstance(signature_data, dict):
                 raise ManifestError("signature must be a JSON object")
-            if set(signature_data) != {"algorithm", "digest"}:
-                raise ManifestError("signature must contain algorithm and digest")
+            allowed_signature_fields = {"algorithm", "digest", "key_id"}
+            if not {"algorithm", "digest"}.issubset(signature_data) or not set(
+                signature_data
+            ).issubset(allowed_signature_fields):
+                raise ManifestError(
+                    "signature must contain algorithm and digest, with optional key_id"
+                )
             if signature_data.get("algorithm") != "hmac-sha256":
                 raise ManifestError("signature.algorithm must be hmac-sha256")
             signature_digest = _nonempty_string(
@@ -178,6 +191,15 @@ class Manifest:
                 "algorithm": "hmac-sha256",
                 "digest": signature_digest,
             }
+            if "key_id" in signature_data:
+                key_id = _nonempty_string(
+                    signature_data.get("key_id"), "signature.key_id"
+                )
+                if len(key_id) > 128:
+                    raise ManifestError(
+                        "signature.key_id must be at most 128 characters"
+                    )
+                signature["key_id"] = key_id
 
         model = dict(data["model"])
         _nonempty_string(model.get("class"), "model.class")
