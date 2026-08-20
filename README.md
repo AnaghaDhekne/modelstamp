@@ -258,6 +258,10 @@ Contributions are welcome. See the
 [contribution guide](https://github.com/AnaghaDhekne/modelstamp/blob/main/CONTRIBUTING.md)
 for the local development and pull-request workflow.
 
+## Maintainer
+
+[Anagha Dhekne](https://github.com/AnaghaDhekne)
+
 ## License
 
 MIT
