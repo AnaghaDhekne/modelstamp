@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 import warnings
+from pathlib import Path
 
 import pytest
 
 import modelstamp as ms
+from modelstamp import core
 from modelstamp.exceptions import (
     ArtifactIntegrityError,
     EnvironmentMismatchError,
@@ -60,6 +62,45 @@ def test_nested_output_directory(tmp_path, model):
     ms.save(model, path, backend="pickle")
     assert path.is_file()
     assert path.with_name("model.pkl.manifest.json").is_file()
+
+
+def test_manifest_commit_failure_does_not_orphan_new_artifact(
+    tmp_path, model, monkeypatch
+):
+    path = tmp_path / "model.pkl"
+    manifest_path = path.with_name("model.pkl.manifest.json")
+    real_replace = core.os.replace
+
+    def fail_manifest_replace(source, destination):
+        if Path(destination) == manifest_path:
+            raise OSError("simulated manifest failure")
+        real_replace(source, destination)
+
+    monkeypatch.setattr(core.os, "replace", fail_manifest_replace)
+    with pytest.raises(OSError, match="simulated manifest failure"):
+        ms.save(model, path, backend="pickle", include_git=False)
+    assert not path.exists()
+    assert not manifest_path.exists()
+
+
+def test_failed_overwrite_restores_existing_artifact(tmp_path, model, monkeypatch):
+    path = tmp_path / "model.pkl"
+    manifest_path = path.with_name("model.pkl.manifest.json")
+    ms.save(model, path, backend="pickle", include_git=False)
+    original_model = path.read_bytes()
+    original_manifest = manifest_path.read_bytes()
+    real_replace = core.os.replace
+
+    def fail_manifest_replace(source, destination):
+        if Path(destination) == manifest_path:
+            raise OSError("simulated manifest failure")
+        real_replace(source, destination)
+
+    monkeypatch.setattr(core.os, "replace", fail_manifest_replace)
+    with pytest.raises(OSError, match="simulated manifest failure"):
+        ms.save(DummyModel([9.0]), path, backend="pickle", include_git=False)
+    assert path.read_bytes() == original_model
+    assert manifest_path.read_bytes() == original_manifest
 
 
 def test_check_and_verify_clean_artifact(tmp_path, model):
