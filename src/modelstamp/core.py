@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import os
 import pickle
@@ -23,6 +24,7 @@ from .exceptions import (
 )
 
 PathLike = Union[str, Path]
+SigningKey = Union[bytes, bytearray, memoryview]
 _THREAD_LOCKS: Dict[str, threading.RLock] = {}
 _THREAD_LOCKS_GUARD = threading.Lock()
 
@@ -87,6 +89,56 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _signing_key_bytes(signing_key: Optional[SigningKey]) -> Optional[bytes]:
+    if signing_key is None:
+        return None
+    if not isinstance(signing_key, (bytes, bytearray, memoryview)):
+        raise TypeError("signing_key must be bytes-like")
+    key = bytes(signing_key)
+    if not key:
+        raise ValueError("signing_key must not be empty")
+    return key
+
+
+def _sign_manifest(manifest: Manifest, signing_key: bytes) -> None:
+    manifest.signature = {
+        "algorithm": "hmac-sha256",
+        "digest": hmac.new(
+            signing_key, manifest.signing_bytes(), hashlib.sha256
+        ).hexdigest(),
+    }
+
+
+def _verify_manifest_signature(
+    manifest: Manifest, signing_key: Optional[SigningKey]
+) -> None:
+    key = _signing_key_bytes(signing_key)
+    if manifest.signature is None:
+        if key is not None:
+            raise ArtifactIntegrityError("manifest is not signed")
+        return
+    if key is None:
+        raise ArtifactIntegrityError(
+            "manifest is signed; provide signing_key to verify it"
+        )
+    expected = hmac.new(key, manifest.signing_bytes(), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, manifest.signature["digest"]):
+        raise ArtifactIntegrityError("manifest HMAC signature is invalid")
+
+
+def _normalize_metadata(metadata: Optional[Dict[str, Any]]) -> Dict[str, object]:
+    if metadata is None:
+        return {}
+    if not isinstance(metadata, dict):
+        raise TypeError("metadata must be a JSON object")
+    try:
+        encoded = json.dumps(metadata, allow_nan=False)
+        normalized = json.loads(encoded)
+    except (TypeError, ValueError) as exc:
+        raise TypeError("metadata must be strictly JSON-serializable") from exc
+    return normalized
 
 
 @contextmanager
@@ -227,13 +279,11 @@ def save(
     metadata: Optional[Dict[str, Any]] = None,
     backend: str = "auto",
     include_git: bool = True,
+    signing_key: Optional[SigningKey] = None,
 ) -> Manifest:
     """Serialize an object and write a verified environment manifest beside it."""
-    if metadata is not None:
-        try:
-            json.dumps(metadata, allow_nan=False)
-        except (TypeError, ValueError) as exc:
-            raise TypeError("metadata must be strictly JSON-serializable") from exc
+    normalized_metadata = _normalize_metadata(metadata)
+    normalized_signing_key = _signing_key_bytes(signing_key)
 
     model_path = Path(path)
     model_path.parent.mkdir(parents=True, exist_ok=True)
@@ -262,8 +312,10 @@ def save(
             model=model_details,
             environment=environment,
             relevant_packages=relevant,
-            metadata=dict(metadata) if metadata else {},
+            metadata=normalized_metadata,
         )
+        if normalized_signing_key is not None:
+            _sign_manifest(manifest, normalized_signing_key)
         manifest_path = _manifest_path(model_path)
         staged_manifest = _stage_text(manifest_path, manifest.to_json())
         with _artifact_lock(model_path):
@@ -305,11 +357,15 @@ def _verify_stream(stream: BinaryIO, manifest: Manifest) -> None:
     stream.seek(0)
 
 
-def verify(path: PathLike, manifest: Optional[Manifest] = None) -> None:
+def verify(
+    path: PathLike,
+    signing_key: Optional[SigningKey] = None,
+) -> None:
     """Verify artifact size and SHA-256 without deserializing it."""
     model_path = Path(path)
     with _artifact_lock(model_path):
-        manifest = manifest or _read_manifest(model_path)
+        manifest = _read_manifest(model_path)
+        _verify_manifest_signature(manifest, signing_key)
         if not model_path.is_file():
             raise ArtifactIntegrityError(f"artifact not found: {model_path}")
         with model_path.open("rb") as stream:
@@ -321,6 +377,7 @@ def load(
     on_mismatch: str = "warn",
     backend: str = "auto",
     return_manifest: bool = True,
+    signing_key: Optional[SigningKey] = None,
 ) -> Union[Any, Tuple[Any, Manifest]]:
     """Verify, compatibility-check, then load a model artifact."""
     if on_mismatch not in ("warn", "raise", "ignore"):
@@ -328,6 +385,7 @@ def load(
     model_path = Path(path)
     with _artifact_lock(model_path):
         manifest = _read_manifest(model_path)
+        _verify_manifest_signature(manifest, signing_key)
         resolved = _resolve_load_backend(backend, manifest)
         if not model_path.is_file():
             raise ArtifactIntegrityError(f"artifact not found: {model_path}")
@@ -344,16 +402,19 @@ def load(
 
 def inspect(path: PathLike) -> Manifest:
     """Read a manifest without loading or verifying the model."""
-    return _read_manifest(Path(path))
+    model_path = Path(path)
+    with _artifact_lock(model_path):
+        return _read_manifest(model_path)
 
 
-def check(path: PathLike) -> MismatchReport:
+def check(path: PathLike, signing_key: Optional[SigningKey] = None) -> MismatchReport:
     """Check both artifact integrity and runtime compatibility."""
     model_path = Path(path)
     with _artifact_lock(model_path):
         manifest = _read_manifest(model_path)
         report = manifest.compare_to_current()
         try:
+            _verify_manifest_signature(manifest, signing_key)
             if not model_path.is_file():
                 raise ArtifactIntegrityError(f"artifact not found: {model_path}")
             with model_path.open("rb") as stream:
