@@ -35,3 +35,15 @@ def test_errors_are_written_to_stderr(tmp_path, capsys):
     captured = capsys.readouterr()
     assert captured.out == ""
     assert "no manifest found" in captured.err
+
+
+def test_check_exit_statuses(tmp_path, capsys):
+    path = tmp_path / "model.pkl"
+    ms.save(DummyModel(), path, backend="pickle", include_git=False)
+
+    assert main(["check", str(path)]) == 0
+    assert "match" in capsys.readouterr().out
+
+    path.write_bytes(path.read_bytes() + b"tampered")
+    assert main(["check", str(path)]) == 1
+    assert "integrity" in capsys.readouterr().out

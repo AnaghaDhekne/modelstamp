@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import json
+import pickle
 import warnings
 from pathlib import Path
+from threading import Event, Thread
 
 import pytest
 
 import modelstamp as ms
 from modelstamp import core
+from modelstamp.core import _model_details
 from modelstamp.exceptions import (
     ArtifactIntegrityError,
     EnvironmentMismatchError,
@@ -64,6 +67,19 @@ def test_nested_output_directory(tmp_path, model):
     assert path.with_name("model.pkl.manifest.json").is_file()
 
 
+def test_existing_directory_is_rejected_without_modification(tmp_path, model):
+    path = tmp_path / "models"
+    path.mkdir()
+    important = path / "important.txt"
+    important.write_text("keep", encoding="utf-8")
+
+    with pytest.raises(IsADirectoryError, match="not a regular file"):
+        ms.save(model, path, backend="pickle", include_git=False)
+
+    assert path.is_dir()
+    assert important.read_text(encoding="utf-8") == "keep"
+
+
 def test_manifest_commit_failure_does_not_orphan_new_artifact(
     tmp_path, model, monkeypatch
 ):
@@ -103,6 +119,70 @@ def test_failed_overwrite_restores_existing_artifact(tmp_path, model, monkeypatc
     assert manifest_path.read_bytes() == original_manifest
 
 
+def test_failed_rollback_preserves_backup(tmp_path, model, monkeypatch):
+    path = tmp_path / "model.pkl"
+    manifest_path = path.with_name("model.pkl.manifest.json")
+    ms.save(model, path, backend="pickle", include_git=False)
+    real_replace = core.os.replace
+
+    def fail_commit_and_rollback(source, destination):
+        source = Path(source)
+        destination = Path(destination)
+        if destination == manifest_path:
+            raise OSError("simulated manifest failure")
+        if source.suffix == ".backup" and destination == path:
+            raise OSError("simulated rollback failure")
+        real_replace(source, destination)
+
+    monkeypatch.setattr(core.os, "replace", fail_commit_and_rollback)
+    with pytest.raises(RuntimeError, match="previous model is preserved"):
+        ms.save(DummyModel([9.0]), path, backend="pickle", include_git=False)
+
+    backups = list(tmp_path.glob(".model.pkl.*.backup"))
+    assert len(backups) == 1
+    assert pickle.loads(backups[0].read_bytes()) == model
+
+
+def test_concurrent_saves_leave_a_valid_pair(tmp_path, monkeypatch):
+    path = tmp_path / "model.pkl"
+    first_dump_started = Event()
+    allow_first_dump = Event()
+    real_dump = core._dump
+
+    def coordinated_dump(obj, destination, backend):
+        if obj == {"writer": "first"}:
+            first_dump_started.set()
+            assert allow_first_dump.wait(5)
+        real_dump(obj, destination, backend)
+
+    monkeypatch.setattr(core, "_dump", coordinated_dump)
+    errors = []
+
+    def save_value(value):
+        try:
+            ms.save(value, path, backend="pickle", include_git=False)
+        except Exception as exc:  # pragma: no cover - assertion reports details.
+            errors.append(exc)
+
+    first = Thread(target=save_value, args=({"writer": "first"},))
+    second = Thread(target=save_value, args=({"writer": "second"},))
+    first.start()
+    assert first_dump_started.wait(5)
+    second.start()
+    allow_first_dump.set()
+    first.join(5)
+    second.join(5)
+
+    assert not errors
+    assert not first.is_alive()
+    assert not second.is_alive()
+    ms.verify(path)
+    assert ms.load(path, return_manifest=False) in (
+        {"writer": "first"},
+        {"writer": "second"},
+    )
+
+
 def test_check_and_verify_clean_artifact(tmp_path, model):
     path = tmp_path / "model.pkl"
     ms.save(model, path, backend="pickle", include_git=False)
@@ -133,6 +213,22 @@ def test_same_size_tampering_is_detected_by_hash(tmp_path, model):
         ms.verify(path)
 
 
+def test_load_uses_the_verified_open_file(tmp_path, model, monkeypatch):
+    path = tmp_path / "model.pkl"
+    ms.save(model, path, backend="pickle", include_git=False)
+    replacement = pickle.dumps(DummyModel([9.0]), protocol=pickle.HIGHEST_PROTOCOL)
+    replacement_path = tmp_path / "replacement.pkl"
+    replacement_path.write_bytes(replacement)
+    real_load = core._load_object
+
+    def replace_path_then_load(stream, backend):
+        core.os.replace(replacement_path, path)
+        return real_load(stream, backend)
+
+    monkeypatch.setattr(core, "_load_object", replace_path_then_load)
+    assert ms.load(path, on_mismatch="ignore", return_manifest=False) == model
+
+
 def test_backend_mismatch_is_rejected(tmp_path, model):
     path = tmp_path / "model.pkl"
     ms.save(model, path, backend="pickle")
@@ -161,6 +257,13 @@ def test_missing_and_malformed_manifests(tmp_path, model):
         ms.load(path)
     sidecar.write_text("{bad json", encoding="utf-8")
     with pytest.raises(ManifestError, match="invalid JSON"):
+        ms.inspect(path)
+
+
+def test_non_utf8_manifest_is_reported_as_manifest_error(tmp_path):
+    path = tmp_path / "model.pkl"
+    path.with_name("model.pkl.manifest.json").write_bytes(b"\xff\xfe")
+    with pytest.raises(ManifestError, match="cannot read manifest"):
         ms.inspect(path)
 
 
@@ -209,6 +312,21 @@ def test_malformed_steps_attribute_does_not_break_save(tmp_path):
     model.steps = ["not-a-pipeline-step"]
     manifest = ms.save(model, tmp_path / "model.pkl", backend="pickle")
     assert "components" not in manifest.model
+
+
+@pytest.mark.parametrize(
+    ("module", "expected"),
+    [
+        ("scipy.sparse", {"numpy", "scipy"}),
+        ("joblib.memory", {"joblib"}),
+        ("statsmodels.api", {"numpy", "pandas", "scipy", "statsmodels"}),
+        ("xgboost.sklearn", {"numpy", "scipy", "xgboost"}),
+    ],
+)
+def test_model_details_include_dependency_bundle(module, expected):
+    example_type = type("Example", (), {"__module__": module})
+    _, relevant = _model_details(example_type())
+    assert set(relevant) == expected
 
 
 def test_joblib_round_trip_when_installed(tmp_path, model):
