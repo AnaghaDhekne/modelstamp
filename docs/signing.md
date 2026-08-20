@@ -4,6 +4,13 @@ Checksums detect corruption but cannot stop someone who can replace both the
 artifact and its manifest. HMAC authentication adds a shared-secret trust
 boundary.
 
+HMAC is symmetric: the signing key and verification key are the same secret.
+Anyone who can verify an artifact with that key can also create a valid forgery.
+Do not distribute an HMAC key to parties that should have verification-only
+access. Public or third-party verification without signing authority requires
+an asymmetric mechanism such as Ed25519 or Sigstore, which `modelstamp` does
+not currently provide.
+
 ## Sign an artifact
 
 ```python
@@ -34,9 +41,9 @@ keys = {
 model, manifest = ms.load("model.joblib", signing_keys=keys)
 ```
 
-The authenticated `key_id` selects the registry entry. An unknown identifier,
-wrong key, missing signature, or modified identifier rejects the artifact
-before deserialization.
+The authenticated `key_id` selects the registry entry. An unknown identifier
+fails immediately during key selection. A wrong key, missing signature, or
+modified identifier also rejects before artifact hashing or deserialization.
 
 Artifacts created before key IDs were supported remain compatible:
 
@@ -45,4 +52,3 @@ model, manifest = ms.load("legacy.joblib", signing_key=legacy_key)
 ```
 
 Use either `signing_key` or `signing_keys`, never both.
-
