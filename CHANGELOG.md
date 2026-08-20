@@ -25,3 +25,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - JSON-normalized metadata, locked manifest inspection, and clean CLI handling
   for filesystem errors.
 - Python 3.13 testing and typed-package metadata.
+- Reference-counted artifact locks that do not accumulate in long-running
+  processes.
+- Distribution-backed `__version__` lookup to prevent release version drift.
+- Authenticated signing-key identifiers and registry-based key rotation.
+- Property-based manifest validation tests and reproducible verification
+  benchmarks.
+- Searchable MkDocs API documentation with GitHub Pages deployment.
+- Current Node.js 24-based GitHub Actions versions.
