@@ -30,3 +30,8 @@ argument. It authenticates the complete manifest and artifact digest with
 HMAC-SHA-256. Protect the key independently of the artifact. Signed manifests
 detect unauthorized replacement, but they do not sandbox pickle/joblib or
 prevent malicious code in an artifact signed by a compromised or untrusted key.
+
+Use `key_id` on new artifacts and pass a `signing_keys` registry when loading to
+rotate secrets without invalidating older models. The key identifier is itself
+authenticated. Remove old registry entries only after their artifacts have
+expired or been re-signed.
