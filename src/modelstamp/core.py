@@ -125,7 +125,7 @@ def _model_details(obj: Any) -> Tuple[Dict[str, object], List[str]]:
     return details, sorted(relevant)
 
 
-def _atomic_write_text(path: Path, content: str) -> None:
+def _stage_text(path: Path, content: str) -> Path:
     descriptor, temporary = tempfile.mkstemp(
         prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent)
     )
@@ -134,10 +134,46 @@ def _atomic_write_text(path: Path, content: str) -> None:
             stream.write(content)
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temporary, path)
+        return Path(temporary)
+    except BaseException:
+        Path(temporary).unlink(missing_ok=True)
+        raise
+
+
+def _commit_artifact_pair(
+    staged_model: Path,
+    model_path: Path,
+    staged_manifest: Path,
+    manifest_path: Path,
+) -> None:
+    backup_path: Optional[Path] = None
+    if model_path.exists():
+        descriptor, backup_name = tempfile.mkstemp(
+            prefix=f".{model_path.name}.", suffix=".backup", dir=str(model_path.parent)
+        )
+        os.close(descriptor)
+        backup_path = Path(backup_name)
+        backup_path.unlink()
+        os.replace(model_path, backup_path)
+
+    try:
+        os.replace(staged_model, model_path)
+        try:
+            # Two paths cannot be replaced as one filesystem transaction. Staging
+            # both first keeps this window small; rollback prevents an orphan.
+            os.replace(staged_manifest, manifest_path)
+        except BaseException:
+            model_path.unlink(missing_ok=True)
+            if backup_path is not None:
+                os.replace(backup_path, model_path)
+            raise
+    except BaseException:
+        if backup_path is not None and backup_path.exists() and not model_path.exists():
+            os.replace(backup_path, model_path)
+        raise
     finally:
-        if os.path.exists(temporary):
-            os.unlink(temporary)
+        if backup_path is not None:
+            backup_path.unlink(missing_ok=True)
 
 
 def save(
@@ -162,6 +198,7 @@ def save(
     )
     os.close(descriptor)
     temporary_path = Path(temporary_name)
+    staged_manifest: Optional[Path] = None
     try:
         _dump(obj, temporary_path, resolved)
         model_details, relevant = _model_details(obj)
@@ -177,12 +214,20 @@ def save(
             relevant_packages=relevant,
             metadata=dict(metadata) if metadata else {},
         )
-        os.replace(temporary_path, model_path)
-        _atomic_write_text(_manifest_path(model_path), manifest.to_json())
+        manifest_path = _manifest_path(model_path)
+        staged_manifest = _stage_text(manifest_path, manifest.to_json())
+        _commit_artifact_pair(
+            temporary_path,
+            model_path,
+            staged_manifest,
+            manifest_path,
+        )
         return manifest
     finally:
         if temporary_path.exists():
             temporary_path.unlink()
+        if staged_manifest is not None:
+            staged_manifest.unlink(missing_ok=True)
 
 
 def verify(path: PathLike, manifest: Optional[Manifest] = None) -> None:
