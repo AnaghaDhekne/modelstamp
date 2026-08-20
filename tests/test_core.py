@@ -184,6 +184,27 @@ def test_concurrent_saves_leave_a_valid_pair(tmp_path, monkeypatch):
     )
 
 
+def test_thread_locks_are_released_after_each_artifact(tmp_path):
+    for index in range(100):
+        path = tmp_path / f"model-{index}.pkl"
+        ms.save({"index": index}, path, backend="pickle", include_git=False)
+        ms.verify(path)
+    assert core._THREAD_LOCKS == {}
+
+
+def test_thread_lock_entry_is_released_when_lock_setup_fails(tmp_path, monkeypatch):
+    path = tmp_path / "model.pkl"
+    ms.save({"value": 1}, path, backend="pickle", include_git=False)
+
+    def fail_mkdir(*args, **kwargs):
+        raise PermissionError("lock directory unavailable")
+
+    monkeypatch.setattr(core.Path, "mkdir", fail_mkdir)
+    with pytest.raises(PermissionError, match="lock directory unavailable"):
+        ms.verify(path)
+    assert core._THREAD_LOCKS == {}
+
+
 def test_check_and_verify_clean_artifact(tmp_path, model):
     path = tmp_path / "model.pkl"
     ms.save(model, path, backend="pickle", include_git=False)
@@ -410,6 +431,61 @@ def test_signed_manifest_round_trip(tmp_path, model):
     assert not ms.check(path, signing_key=key)
 
 
+def test_key_id_selects_rotated_signing_key(tmp_path, model):
+    path = tmp_path / "model.pkl"
+    keys = {"2026-q2": b"old-key", "2026-q3": b"current-key"}
+    manifest = ms.save(
+        model,
+        path,
+        backend="pickle",
+        include_git=False,
+        signing_key=keys["2026-q3"],
+        key_id="2026-q3",
+    )
+    assert manifest.signature["key_id"] == "2026-q3"
+    ms.verify(path, signing_keys=keys)
+    assert ms.load(path, signing_keys=keys, return_manifest=False) == model
+
+
+def test_key_id_is_authenticated(tmp_path, model):
+    path = tmp_path / "model.pkl"
+    keys = {"old": b"old-key", "current": b"current-key"}
+    ms.save(
+        model,
+        path,
+        backend="pickle",
+        signing_key=keys["current"],
+        key_id="current",
+    )
+    sidecar = path.with_name("model.pkl.manifest.json")
+    data = json.loads(sidecar.read_text(encoding="utf-8"))
+    data["signature"]["key_id"] = "old"
+    sidecar.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ArtifactIntegrityError, match="signature is invalid"):
+        ms.verify(path, signing_keys=keys)
+
+
+def test_unknown_rotated_key_is_rejected(tmp_path, model):
+    path = tmp_path / "model.pkl"
+    ms.save(
+        model,
+        path,
+        backend="pickle",
+        signing_key=b"current-key",
+        key_id="current",
+    )
+    with pytest.raises(ArtifactIntegrityError, match="no signing key registered"):
+        ms.verify(path, signing_keys={"old": b"old-key"})
+
+
+def test_legacy_signature_uses_direct_key(tmp_path, model):
+    path = tmp_path / "model.pkl"
+    ms.save(model, path, backend="pickle", signing_key=b"legacy-key")
+    ms.verify(path, signing_key=b"legacy-key")
+    with pytest.raises(ArtifactIntegrityError, match="has no key_id"):
+        ms.verify(path, signing_keys={"legacy": b"legacy-key"})
+
+
 def test_signed_manifest_requires_the_correct_key(tmp_path, model):
     path = tmp_path / "model.pkl"
     ms.save(path=path, obj=model, backend="pickle", signing_key=b"correct-key")
@@ -445,3 +521,25 @@ def test_invalid_signing_keys_are_rejected(tmp_path, model, key):
     expected = ValueError if key == b"" else TypeError
     with pytest.raises(expected):
         ms.save(model, tmp_path / "model.pkl", backend="pickle", signing_key=key)
+
+
+def test_invalid_key_ids_and_key_arguments_are_rejected(tmp_path, model):
+    path = tmp_path / "model.pkl"
+    with pytest.raises(ValueError, match="requires signing_key"):
+        ms.save(model, path, backend="pickle", key_id="current")
+    with pytest.raises(TypeError, match="non-empty string"):
+        ms.save(model, path, backend="pickle", signing_key=b"key", key_id="")
+
+    ms.save(
+        model,
+        path,
+        backend="pickle",
+        signing_key=b"key",
+        key_id="current",
+    )
+    with pytest.raises(ValueError, match="not both"):
+        ms.verify(
+            path,
+            signing_key=b"key",
+            signing_keys={"current": b"key"},
+        )
