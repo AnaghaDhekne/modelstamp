@@ -19,6 +19,7 @@ ruff check .
 pytest
 python -m build
 python -m twine check dist/*
+mkdocs build --strict
 ```
 
 ## Pull requests
