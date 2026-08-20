@@ -44,4 +44,7 @@ ms.verify("model.joblib")
 ```
 
 The same commands are available through the `modelstamp` CLI.
+Use `python -m modelstamp` if the console script is not on `PATH`.
 
+`inspect()` validates the manifest structure, but it does not verify its
+checksum or signature. Use `verify()` or `check()` when trust matters.
