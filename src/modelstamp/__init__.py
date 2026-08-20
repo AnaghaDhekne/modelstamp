@@ -15,6 +15,8 @@ Example
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
+
 from ._manifest import Manifest, MismatchReport
 from .core import check, inspect, load, save, verify
 from .exceptions import (
@@ -25,7 +27,10 @@ from .exceptions import (
     ModelStampWarning,
 )
 
-__version__ = "0.1.0"
+try:
+    __version__ = version("modelstamp")
+except PackageNotFoundError:  # pragma: no cover - uninstalled source tree.
+    __version__ = "0+unknown"
 
 __all__ = [
     # Operations
