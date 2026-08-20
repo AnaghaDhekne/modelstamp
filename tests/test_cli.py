@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
+from pathlib import Path
 
 import modelstamp as ms
 from modelstamp.cli import main
@@ -22,6 +26,23 @@ def test_version_matches_installed_distribution():
     from importlib.metadata import version
 
     assert ms.__version__ == version("modelstamp")
+
+
+def test_module_entry_point():
+    environment = os.environ.copy()
+    source_root = str(Path(__file__).parents[1] / "src")
+    environment["PYTHONPATH"] = (
+        source_root + os.pathsep + environment.get("PYTHONPATH", "")
+    )
+    result = subprocess.run(
+        [sys.executable, "-m", "modelstamp", "--version"],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
+    )
+    assert result.returncode == 0
+    assert result.stdout.strip() == f"modelstamp {ms.__version__}"
 
 
 def test_inspect_and_verify_commands(tmp_path, capsys):
