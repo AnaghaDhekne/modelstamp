@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import pickle
 import warnings
+from contextlib import contextmanager
 from pathlib import Path
 from threading import Event, Thread
 
@@ -252,6 +253,24 @@ def test_non_finite_metadata_is_rejected(tmp_path, model):
         ms.save(model, tmp_path / "model.pkl", metadata={"score": float("nan")})
 
 
+def test_metadata_is_normalized_to_its_persisted_json_shape(tmp_path, model):
+    path = tmp_path / "model.pkl"
+    manifest = ms.save(
+        model,
+        path,
+        metadata={"folds": (1, 2)},
+        backend="pickle",
+        include_git=False,
+    )
+    assert manifest.metadata == {"folds": [1, 2]}
+    assert ms.inspect(path).metadata == manifest.metadata
+
+
+def test_metadata_must_be_a_json_object(tmp_path, model):
+    with pytest.raises(TypeError, match="JSON object"):
+        ms.save(model, tmp_path / "model.pkl", metadata=["not", "an", "object"])
+
+
 def test_missing_and_malformed_manifests(tmp_path, model):
     path = tmp_path / "model.pkl"
     ms.save(model, path, backend="pickle")
@@ -269,6 +288,21 @@ def test_non_utf8_manifest_is_reported_as_manifest_error(tmp_path):
     path.with_name("model.pkl.manifest.json").write_bytes(b"\xff\xfe")
     with pytest.raises(ManifestError, match="cannot read manifest"):
         ms.inspect(path)
+
+
+def test_inspect_uses_the_artifact_lock(tmp_path, model, monkeypatch):
+    path = tmp_path / "model.pkl"
+    ms.save(model, path, backend="pickle", include_git=False)
+    locked_paths = []
+
+    @contextmanager
+    def recording_lock(model_path):
+        locked_paths.append(model_path)
+        yield
+
+    monkeypatch.setattr(core, "_artifact_lock", recording_lock)
+    ms.inspect(path)
+    assert locked_paths == [path]
 
 
 def test_unknown_schema_version_is_rejected(tmp_path, model):
@@ -362,3 +396,52 @@ def test_invalid_policy_is_rejected(tmp_path, model):
     ms.save(model, path, backend="pickle")
     with pytest.raises(ValueError):
         ms.load(path, on_mismatch="explode")
+
+
+def test_signed_manifest_round_trip(tmp_path, model):
+    path = tmp_path / "model.pkl"
+    key = b"test-only-secret-key"
+    manifest = ms.save(
+        model, path, backend="pickle", include_git=False, signing_key=key
+    )
+    assert manifest.signature["algorithm"] == "hmac-sha256"
+    ms.verify(path, signing_key=key)
+    assert ms.load(path, signing_key=key, return_manifest=False) == model
+    assert not ms.check(path, signing_key=key)
+
+
+def test_signed_manifest_requires_the_correct_key(tmp_path, model):
+    path = tmp_path / "model.pkl"
+    ms.save(path=path, obj=model, backend="pickle", signing_key=b"correct-key")
+    with pytest.raises(ArtifactIntegrityError, match="provide signing_key"):
+        ms.verify(path)
+    with pytest.raises(ArtifactIntegrityError, match="signature is invalid"):
+        ms.load(path, signing_key=b"wrong-key")
+    report = ms.check(path, signing_key=b"wrong-key")
+    assert report.integrity_error == "manifest HMAC signature is invalid"
+
+
+def test_manifest_tampering_invalidates_signature(tmp_path, model):
+    path = tmp_path / "model.pkl"
+    key = b"correct-key"
+    ms.save(model, path, backend="pickle", signing_key=key)
+    sidecar = path.with_name("model.pkl.manifest.json")
+    data = json.loads(sidecar.read_text(encoding="utf-8"))
+    data["metadata"]["untrusted"] = True
+    sidecar.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ArtifactIntegrityError, match="signature is invalid"):
+        ms.verify(path, signing_key=key)
+
+
+def test_providing_a_key_rejects_an_unsigned_manifest(tmp_path, model):
+    path = tmp_path / "model.pkl"
+    ms.save(model, path, backend="pickle")
+    with pytest.raises(ArtifactIntegrityError, match="not signed"):
+        ms.verify(path, signing_key=b"expected-signing-key")
+
+
+@pytest.mark.parametrize("key", [b"", "text-key"])
+def test_invalid_signing_keys_are_rejected(tmp_path, model, key):
+    expected = ValueError if key == b"" else TypeError
+    with pytest.raises(expected):
+        ms.save(model, tmp_path / "model.pkl", backend="pickle", signing_key=key)
