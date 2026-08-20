@@ -33,3 +33,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   benchmarks.
 - Searchable MkDocs API documentation with GitHub Pages deployment.
 - Current Node.js 24-based GitHub Actions versions.
+- Explicit symmetric-HMAC trust-boundary guidance and single-source release
+  version instructions.
