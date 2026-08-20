@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,3 +37,5 @@ jobs:
           name: python-package-distributions
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true
