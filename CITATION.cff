@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use Modelstamp in your research, please cite the software using the metadata below."
+title: "Modelstamp: Integrity and environment verification for Python machine-learning artifacts"
+type: software
+authors:
+  - family-names: Dhekne
+    given-names: Anagha
+repository-code: "https://github.com/AnaghaDhekne/modelstamp"
+url: "https://anaghadhekne.github.io/modelstamp/"
+license: MIT
+version: 0.1.0
+date-released: 2026-08-20
+keywords:
+  - machine learning
+  - model persistence
+  - reproducibility
+  - artifact integrity
+  - scikit-learn
+abstract: >-
+  Modelstamp is a Python package that records integrity, environment, and model
+  metadata alongside serialized machine-learning artifacts. It verifies an
+  artifact before deserialization and reports relevant dependency differences
+  between the saved and current environments. Optional HMAC authentication can
+  be used when publishers and verifiers share a protected secret.
