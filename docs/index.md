@@ -24,3 +24,5 @@ pair against unauthorized replacement.
 Start with the [quick start](quickstart.md), then review the
 [security boundary](security.md) before loading persisted Python objects.
 
+
+Releases are published from protected `v*` tags using PyPI Trusted Publishing.
