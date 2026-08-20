@@ -244,11 +244,16 @@ mkdocs build --strict
 
 GitHub Actions runs the test suite on Python 3.8 through 3.13. Publishing is
 configured for PyPI Trusted Publishing and runs when a GitHub release is
-published.
+published. Production releases must use a protected `v*` tag whose commit is
+contained in `main`; the PyPI deployment also requires maintainer approval.
 
 `pyproject.toml` is the single source of truth for the package version. Update
 only its `project.version` value when preparing a release; `modelstamp.__version__`
 reads the resulting installed distribution metadata.
+
+Maintainers should follow the [release checklist](docs/releasing.md). A merge
+to `main` does not publish to PyPI by itself, and lockfile-only maintenance does
+not require a package release.
 
 Property-based tests exercise malformed manifest structures. Verification
 throughput for representative artifact sizes is recorded in

@@ -30,5 +30,13 @@ mkdocs build --strict
 - Update the README or changelog when public behavior changes.
 - Never include real model artifacts, credentials, or private training data.
 
+All changes to `main` go through a pull request. Required CI and CodeQL checks
+must pass, conversations must be resolved, and a Code Owner must approve
+contributor pull requests. New commits dismiss an earlier approval so the final
+revision is always reviewed.
+
+Merging a pull request does not publish a package. Maintainers publish releases
+separately by following the [release checklist](docs/releasing.md).
+
 For suspected vulnerabilities, follow [SECURITY.md](SECURITY.md) instead of
 opening a public issue.
