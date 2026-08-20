@@ -115,6 +115,10 @@ modelstamp check model.joblib
 modelstamp verify model.joblib
 ```
 
+You can also use `python -m modelstamp` in environments where the console
+script is not on `PATH`. `inspect` validates the manifest structure but does
+not authenticate its contents; use `verify` or `check` when trust matters.
+
 `check` exits with status 0 for a clean artifact, 1 for a compatibility or
 integrity mismatch, and 2 when the manifest cannot be read.
 
@@ -208,7 +212,7 @@ except ms.ArtifactIntegrityError as exc:
 | `load(path)` | Verify, compare environments, and load | Yes |
 | `verify(path)` | Check artifact size and SHA-256 | No |
 | `check(path)` | Check integrity and runtime compatibility | No |
-| `inspect(path)` | Read manifest metadata | No |
+| `inspect(path)` | Read schema-validated, unauthenticated manifest metadata | No |
 
 ## Security boundary
 
