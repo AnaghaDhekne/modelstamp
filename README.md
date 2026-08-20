@@ -2,7 +2,7 @@
 
 **Model files with receipts.**
 
-[![Tests](https://github.com/AnaghaDhekne/modelstamp/actions/workflows/test.yml/badge.svg)](https://github.com/AnaghaDhekne/modelstamp/actions/workflows/test.yml)
+[![Tests](https://github.com/AnaghaDhekne/modelstamp/actions/workflows/test.yml/badge.svg?branch=main&event=push)](https://github.com/AnaghaDhekne/modelstamp/actions/workflows/test.yml?query=branch%3Amain+event%3Apush)
 [![Python 3.8–3.12](https://img.shields.io/badge/python-3.8%E2%80%933.12-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/AnaghaDhekne/modelstamp/blob/main/LICENSE)
 
