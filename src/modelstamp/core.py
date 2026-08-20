@@ -116,6 +116,8 @@ def _validate_key_id(key_id: Optional[str]) -> Optional[str]:
         return None
     if not isinstance(key_id, str) or not key_id.strip():
         raise TypeError("key_id must be a non-empty string")
+    if key_id != key_id.strip():
+        raise ValueError("key_id must not have leading or trailing whitespace")
     if len(key_id) > 128:
         raise ValueError("key_id must be at most 128 characters")
     return key_id
@@ -546,9 +548,11 @@ def check(
     model_path = Path(path)
     with _artifact_lock(model_path):
         manifest = _read_manifest(model_path)
-        report = manifest.compare_to_current()
+        report = MismatchReport()
         try:
+            # Authenticate before using manifest-controlled environment data.
             _verify_manifest_signature(manifest, signing_key, signing_keys)
+            report = manifest.compare_to_current()
             if not model_path.is_file():
                 raise ArtifactIntegrityError(f"artifact not found: {model_path}")
             with model_path.open("rb") as stream:
