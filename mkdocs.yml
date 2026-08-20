@@ -1,0 +1,29 @@
+site_name: modelstamp
+site_description: Integrity-checked persistence for Python machine-learning models
+site_url: https://anaghadhekne.github.io/modelstamp/
+repo_url: https://github.com/AnaghaDhekne/modelstamp
+repo_name: AnaghaDhekne/modelstamp
+
+theme:
+  name: mkdocs
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: false
+            members_order: source
+
+nav:
+  - Home: index.md
+  - Quick start: quickstart.md
+  - Signing and key rotation: signing.md
+  - Security: security.md
+  - API reference: api.md
+  - Benchmarks: benchmarks.md
+
+strict: true
+
