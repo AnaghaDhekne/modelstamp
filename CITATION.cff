@@ -23,4 +23,3 @@ abstract: >-
   artifact before deserialization and reports relevant dependency differences
   between the saved and current environments. Optional HMAC authentication can
   be used when publishers and verifiers share a protected secret.
-
