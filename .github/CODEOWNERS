@@ -1,0 +1,7 @@
+# Default owner for repository changes.
+* @AnaghaDhekne
+
+# Security-sensitive release and package surfaces.
+/.github/workflows/ @AnaghaDhekne
+/pyproject.toml @AnaghaDhekne
+/src/modelstamp/ @AnaghaDhekne
