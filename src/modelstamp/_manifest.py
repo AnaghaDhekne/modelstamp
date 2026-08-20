@@ -195,6 +195,10 @@ class Manifest:
                 key_id = _nonempty_string(
                     signature_data.get("key_id"), "signature.key_id"
                 )
+                if key_id != key_id.strip():
+                    raise ManifestError(
+                        "signature.key_id must not have leading or trailing whitespace"
+                    )
                 if len(key_id) > 128:
                     raise ManifestError(
                         "signature.key_id must be at most 128 characters"
