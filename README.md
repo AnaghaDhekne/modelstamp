@@ -1,5 +1,11 @@
 # modelstamp
 
+**Model files with receipts.**
+
+[![Tests](https://github.com/AnaghaDhekne/modelstamp/actions/workflows/test.yml/badge.svg)](https://github.com/AnaghaDhekne/modelstamp/actions/workflows/test.yml)
+[![Python 3.8–3.12](https://img.shields.io/badge/python-3.8%E2%80%933.12-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/AnaghaDhekne/modelstamp/blob/main/LICENSE)
+
 `modelstamp` adds a verifiable environment manifest to persisted Python machine
 learning models. It keeps the familiar pickle or joblib workflow while making
 dependency changes and artifact corruption visible before deserialization.
@@ -8,6 +14,16 @@ Loading a persisted model under different dependency versions is unsupported
 and may fail or behave differently. The scikit-learn documentation therefore
 recommends preserving the training environment alongside the model. `modelstamp`
 packages that practice into a small API.
+
+## Why modelstamp?
+
+A normal `model.pkl` remembers the fitted object, but not the environment that
+made it work. `modelstamp` adds the missing receipt:
+
+- **Integrity:** detect truncated, replaced, or corrupted artifacts.
+- **Compatibility:** identify Python and relevant dependency changes.
+- **Traceability:** record model details, metadata, time, and optional Git state.
+- **Familiarity:** keep using pickle or joblib through `save()` and `load()`.
 
 ## Installation
 
@@ -55,6 +71,10 @@ The manifest records:
 current runtime with the saved runtime and warns when a relevant dependency has
 changed.
 
+Operations targeting the same artifact are serialized across local processes.
+During loading, verification and deserialization use the same open file so a
+concurrent replacement cannot bypass the digest check.
+
 ## Mismatch policy
 
 ```python
@@ -94,6 +114,16 @@ modelstamp verify model.joblib
 `check` exits with status 0 for a clean artifact, 1 for a compatibility or
 integrity mismatch, and 2 when the manifest cannot be read.
 
+## API at a glance
+
+| Operation | Purpose | Deserializes the model? |
+|---|---|---:|
+| `save(model, path)` | Save an artifact and its environment receipt | No |
+| `load(path)` | Verify, compare environments, and load | Yes |
+| `verify(path)` | Check artifact size and SHA-256 | No |
+| `check(path)` | Check integrity and runtime compatibility | No |
+| `inspect(path)` | Read manifest metadata | No |
+
 ## Security boundary
 
 Pickle and joblib can execute code during loading. The SHA-256 recorded by
@@ -101,6 +131,9 @@ Pickle and joblib can execute code during loading. The SHA-256 recorded by
 digital signature and does not make an untrusted model safe. Only load artifacts
 from sources you trust. For a safer serialization format, consider `skops.io` or
 ONNX where they fit your model.
+
+Security issues should be reported according to the
+[security policy](https://github.com/AnaghaDhekne/modelstamp/security/policy).
 
 ## Supported Python versions
 
@@ -121,6 +154,10 @@ twine check dist/*
 GitHub Actions runs the test suite on Python 3.8 through 3.12. Publishing is
 configured for PyPI Trusted Publishing and runs when a GitHub release is
 published.
+
+Contributions are welcome. See the
+[contribution guide](https://github.com/AnaghaDhekne/modelstamp/blob/main/CONTRIBUTING.md)
+for the local development and pull-request workflow.
 
 ## License
 

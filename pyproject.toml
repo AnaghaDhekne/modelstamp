@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "modelstamp"
 version = "0.1.0"
-description = "Integrity-checked model persistence with verifiable environment manifests."
+description = "Save ML models with integrity checks and reproducible environment manifests."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
@@ -17,6 +17,8 @@ keywords = [
     "joblib",
     "reproducibility",
     "model-persistence",
+    "model-integrity",
+    "model-versioning",
     "mlops",
 ]
 classifiers = [
@@ -47,6 +49,8 @@ modelstamp = "modelstamp.cli:main"
 Homepage = "https://github.com/AnaghaDhekne/modelstamp"
 Repository = "https://github.com/AnaghaDhekne/modelstamp"
 Issues = "https://github.com/AnaghaDhekne/modelstamp/issues"
+Changelog = "https://github.com/AnaghaDhekne/modelstamp/blob/main/CHANGELOG.md"
+Security = "https://github.com/AnaghaDhekne/modelstamp/security/policy"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/modelstamp"]

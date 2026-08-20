@@ -10,12 +10,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `save()` / `load()` wrapping joblib (with a pickle fallback) plus a JSON
   environment manifest sidecar.
 - Environment capture: Python, scikit-learn, numpy, scipy, pandas, xgboost,
-  lightgbm, catboost, joblib, platform, timestamp, and git commit.
+  lightgbm, catboost, joblib, statsmodels, platform, timestamp, and git commit.
 - `on_mismatch` policy on load: `"warn"` (default), `"raise"`, `"ignore"`.
 - `check()` and `inspect()` to read the manifest without loading the model.
 - JSON-compatible user metadata stored in the manifest.
 - SHA-256 and size verification before deserialization.
 - Serialization backend and model component metadata in the manifest.
 - Strict manifest schema validation and atomic replacement of individual files.
+- Rollback-safe paired artifact/manifest commits and concurrent-writer locking.
+- Verification and deserialization through the same open artifact file.
 - Relevant-package comparison to avoid warnings about unrelated installations.
 - `inspect`, `check`, and `verify` command-line commands.
