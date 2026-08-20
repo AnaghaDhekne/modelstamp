@@ -134,6 +134,50 @@ def test_unknown_schema_version_is_rejected(tmp_path, model):
         ms.inspect(path)
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("schema_version", True, "unsupported schema"),
+        ("artifact.sha256", "not-a-digest", "64 lowercase"),
+        ("artifact.size_bytes", -1, "non-negative integer"),
+        ("artifact.size_bytes", True, "non-negative integer"),
+    ],
+)
+def test_invalid_manifest_fields_are_rejected(tmp_path, model, field, value, message):
+    path = tmp_path / "model.pkl"
+    ms.save(model, path, backend="pickle", include_git=False)
+    sidecar = path.with_name("model.pkl.manifest.json")
+    data = json.loads(sidecar.read_text(encoding="utf-8"))
+    target = data
+    parts = field.split(".")
+    for part in parts[:-1]:
+        target = target[part]
+    target[parts[-1]] = value
+    sidecar.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ManifestError, match=message):
+        ms.inspect(path)
+
+
+def test_package_change_is_not_public_api():
+    assert "PackageChange" not in ms.__all__
+    assert not hasattr(ms, "PackageChange")
+
+
+def test_malformed_steps_attribute_does_not_break_save(tmp_path):
+    model = DummyModel([1.0])
+    model.steps = ["not-a-pipeline-step"]
+    manifest = ms.save(model, tmp_path / "model.pkl", backend="pickle")
+    assert "components" not in manifest.model
+
+
+def test_joblib_round_trip_when_installed(tmp_path, model):
+    pytest.importorskip("joblib")
+    path = tmp_path / "model.joblib"
+    manifest = ms.save(model, path, backend="joblib", include_git=False)
+    assert manifest.serialization["backend"] == "joblib"
+    assert ms.load(path, return_manifest=False) == model
+
+
 def test_environment_policy_warn_raise_and_ignore(tmp_path, model):
     path = tmp_path / "model.pkl"
     ms.save(model, path, backend="pickle")
