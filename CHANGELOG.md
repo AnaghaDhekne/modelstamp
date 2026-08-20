@@ -13,9 +13,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   lightgbm, catboost, joblib, platform, timestamp, and git commit.
 - `on_mismatch` policy on load: `"warn"` (default), `"raise"`, `"ignore"`.
 - `check()` and `inspect()` to read the manifest without loading the model.
-- User `metadata` stored verbatim in the manifest.
+- JSON-compatible user metadata stored in the manifest.
 - SHA-256 and size verification before deserialization.
 - Serialization backend and model component metadata in the manifest.
-- Strict manifest schema validation and atomic file replacement.
+- Strict manifest schema validation and atomic replacement of individual files.
 - Relevant-package comparison to avoid warnings about unrelated installations.
 - `inspect`, `check`, and `verify` command-line commands.

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "modelstamp"
 version = "0.1.0"
-description = "Version-aware persistence for scikit-learn and friends: stamp the training environment and warn on silent mismatch."
+description = "Integrity-checked model persistence with verifiable environment manifests."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
@@ -33,8 +33,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-# Zero required runtime dependencies. joblib is used if present (it ships with
-# scikit-learn anyway) but pickle is the built-in fallback.
 dependencies = []
 
 [project.optional-dependencies]
