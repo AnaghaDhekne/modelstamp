@@ -24,6 +24,6 @@ nav:
   - Security: security.md
   - API reference: api.md
   - Benchmarks: benchmarks.md
+  - Release checklist: releasing.md
 
 strict: true
-
