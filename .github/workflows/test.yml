@@ -37,6 +37,11 @@ jobs:
       - run: python -m build
       - run: python -m twine check dist/*
       - run: mkdocs build --strict
+      - run: python examples/sklearn_pipeline.py
+      - run: python examples/detect_tampering.py
+      - run: python examples/signed_artifact.py
+        env:
+          MODELSTAMP_SIGNING_KEY: ci-example-key
 
   windows-test:
     runs-on: windows-latest

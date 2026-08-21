@@ -4,9 +4,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "modelstamp"
-# Single source of truth; modelstamp.__version__ reads installed metadata.
-version = "0.1.0"
-description = "Save ML models with integrity checks and reproducible environment manifests."
+# Runtime source of truth; modelstamp.__version__ reads installed metadata.
+version = "0.1.1"
+description = "Verify persisted ML models, detect dependency drift, and record reproducible environments."
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
@@ -22,6 +22,11 @@ keywords = [
     "model-integrity",
     "model-versioning",
     "mlops",
+    "artifact-verification",
+    "dependency-drift",
+    "model-provenance",
+    "model-security",
+    "reproducible-ml",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -46,6 +51,7 @@ dependencies = []
 joblib = ["joblib>=1.0"]
 test = ["pytest>=7.0", "hypothesis>=6.0", "joblib>=1.0"]
 docs = ["mkdocs>=1.5", "mkdocstrings[python]>=0.24"]
+examples = ["scikit-learn>=1.0"]
 dev = [
     "pytest>=7.0",
     "hypothesis>=6.0",
@@ -55,6 +61,7 @@ dev = [
     "ruff",
     "mkdocs>=1.5",
     "mkdocstrings[python]>=0.24",
+    "scikit-learn>=1.0",
 ]
 
 [project.scripts]

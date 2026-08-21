@@ -7,18 +7,36 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/AnaghaDhekne/modelstamp/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22036020.svg)](https://doi.org/10.5281/zenodo.22036020)
 
+**Verify persisted Python ML models before deserialization and detect dependency
+drift between the environments that save and load them.**
+
+```bash
+pip install modelstamp
+```
+
+```python
+import modelstamp as ms
+
+model = {"feature_names": ["age", "income"], "weights": [0.3, 0.7]}
+ms.save(model, "model.pkl")
+restored, manifest = ms.load("model.pkl", on_mismatch="raise")
+print(restored, manifest.relevant_packages)
+```
+
 [Documentation](https://anaghadhekne.github.io/modelstamp/) ·
 [Benchmarks](https://github.com/AnaghaDhekne/modelstamp/blob/main/BENCHMARKS.md) ·
 [Security policy](https://github.com/AnaghaDhekne/modelstamp/security/policy)
 
-`modelstamp` adds a verifiable environment manifest to persisted Python machine
-learning models. It keeps the familiar pickle or joblib workflow while making
-dependency changes and artifact corruption visible before deserialization.
+`modelstamp` verifies persisted Python machine-learning models, detects relevant
+dependency drift, and records reproducible environment metadata. It keeps the
+familiar pickle or joblib workflow while making artifact corruption and runtime
+changes visible before deserialization.
 
 Loading a persisted model under different dependency versions is unsupported
-and may fail or behave differently. The scikit-learn documentation therefore
-recommends preserving the training environment alongside the model. `modelstamp`
-packages that practice into a small API.
+and may fail or behave differently. The
+[scikit-learn model-persistence documentation](https://scikit-learn.org/stable/model_persistence.html)
+therefore recommends preserving the training environment alongside the model.
+`modelstamp` packages that practice into a small API.
 
 ## Why modelstamp?
 
@@ -30,13 +48,26 @@ made it work. `modelstamp` adds the missing receipt:
 - **Traceability:** record model details, metadata, time, and optional Git state.
 - **Familiarity:** keep using pickle or joblib through `save()` and `load()`.
 
-## Installation
+## When to use it
 
-```bash
-pip install modelstamp
-```
+Modelstamp is designed for scikit-learn and other persisted Python ML models
+when you need artifact-level integrity checks, dependency-drift detection, or
+reproducibility metadata without adopting a full model registry.
 
-Install joblib support explicitly when scikit-learn is not already installed:
+It complements lock files and registries: those tools recreate environments or
+manage model lifecycles, while Modelstamp connects one artifact to its digest
+and recorded runtime. It does not make untrusted pickle or joblib payloads safe
+to execute and does not currently provide asymmetric public-key signatures.
+
+See the guides for [dependency drift](https://anaghadhekne.github.io/modelstamp/dependency-drift/),
+[joblib artifact verification](https://anaghadhekne.github.io/modelstamp/verify-joblib/),
+[CI/CD checks](https://anaghadhekne.github.io/modelstamp/ci/), and
+[comparisons with related tools](https://anaghadhekne.github.io/modelstamp/comparisons/).
+
+## Optional joblib support
+
+Install joblib support explicitly when it is not already available in the
+model environment:
 
 ```bash
 pip install "modelstamp[joblib]"
@@ -205,6 +236,11 @@ except ms.ArtifactIntegrityError as exc:
     print(f"Rejected: {exc}")
 ```
 
+Additional standalone examples cover a scikit-learn pipeline, tamper detection,
+and HMAC-authenticated manifests in the
+[`examples/`](https://github.com/AnaghaDhekne/modelstamp/tree/main/examples)
+directory.
+
 ## API at a glance
 
 | Operation | Purpose | Deserializes the model? |
@@ -248,9 +284,10 @@ configured for PyPI Trusted Publishing and runs when a GitHub release is
 published. Production releases must use a protected `v*` tag whose commit is
 contained in `main`; the PyPI deployment also requires maintainer approval.
 
-`pyproject.toml` is the single source of truth for the package version. Update
-only its `project.version` value when preparing a release; `modelstamp.__version__`
-reads the resulting installed distribution metadata.
+`pyproject.toml` is the runtime source of truth for the package version;
+`modelstamp.__version__` reads the resulting installed distribution metadata.
+Release preparation also keeps the human-facing version and date in
+`CITATION.cff` synchronized.
 
 Maintainers should follow the [release checklist](docs/releasing.md). A merge
 to `main` does not publish to PyPI by itself, and lockfile-only maintenance does

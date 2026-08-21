@@ -20,6 +20,12 @@ plugins:
 nav:
   - Home: index.md
   - Quick start: quickstart.md
+  - Use cases:
+      - Detect dependency drift: dependency-drift.md
+      - Verify joblib artifacts: verify-joblib.md
+      - CI/CD verification: ci.md
+      - Comparisons: comparisons.md
+  - Runnable examples: examples.md
   - Signing and key rotation: signing.md
   - Security: security.md
   - API reference: api.md
