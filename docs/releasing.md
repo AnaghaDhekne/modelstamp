@@ -19,13 +19,16 @@ does not publish a package automatically.
 
 ## Publish
 
-1. Create a tag matching the version, for example `v0.1.1`, on the release
+1. Confirm that the Zenodo GitHub integration is enabled for the repository.
+   Without it, publishing a GitHub release will not create the corresponding
+   Zenodo archive and version DOI.
+2. Create a tag matching the version, for example `v0.1.1`, on the release
    commit in `main`.
-2. Publish a GitHub release from that tag.
-3. Confirm that the `Publish to PyPI` workflow verifies the tagged commit is
+3. Publish a GitHub release from that tag.
+4. Confirm that the `Publish to PyPI` workflow verifies the tagged commit is
    contained in `main` and builds the distributions.
-4. Review the pending `pypi` environment deployment and approve it.
-5. Confirm the workflow succeeds, then install the exact version from PyPI in a
+5. Review the pending `pypi` environment deployment and approve it.
+6. Confirm the workflow succeeds, then install the exact version from PyPI in a
    clean environment and run a small import or save/load smoke test.
 
 Protected `v*` tags cannot be updated or deleted. If a release is incorrect,
