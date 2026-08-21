@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-08-21
+
+### Added
+
+- Animated README demonstration of successful artifact verification followed by
+  tamper detection before deserialization.
+- Direct edit links from the documentation site to the corresponding source
+  pages.
+
+### Changed
+
+- Refresh the development lockfile and its Python-version-specific dependency
+  resolutions.
+- Document the required Zenodo GitHub integration check in the release
+  procedure.
+
 ## [0.1.2] - 2026-08-21
 
 ### Fixed
