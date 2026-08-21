@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "modelstamp"
 # Runtime source of truth; modelstamp.__version__ reads installed metadata.
-version = "0.1.2"
+version = "0.1.3"
 description = "Verify persisted ML models, detect dependency drift, and record reproducible environments."
 readme = "README.md"
 requires-python = ">=3.8"
