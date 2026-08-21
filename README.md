@@ -7,6 +7,8 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/AnaghaDhekne/modelstamp/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22047771.svg)](https://doi.org/10.5281/zenodo.22047771)
 
+![Modelstamp detecting a tampered machine-learning artifact](https://raw.githubusercontent.com/AnaghaDhekne/modelstamp/main/docs/assets/modelstamp_demo.gif)
+
 **Verify persisted Python ML models before deserialization and detect dependency
 drift between the environments that save and load them.**
 
