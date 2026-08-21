@@ -1,0 +1,98 @@
+# Modelstamp
+
+Modelstamp is a Python library for verifying persisted machine-learning
+artifacts before deserialization. It checks artifact integrity, records the
+save-time environment, and reports relevant dependency drift when the artifact
+is checked or loaded. It supports pickle and joblib artifacts.
+
+## Installation
+
+```bash
+pip install modelstamp
+pip install "modelstamp[joblib]"  # only if joblib is not already installed
+```
+
+## Save and load
+
+```python
+import modelstamp as ms
+
+model = {"feature_names": ["age", "income"], "weights": [0.3, 0.7]}
+manifest = ms.save(model, "model.pkl", metadata={"dataset": "training-v1"})
+restored, manifest = ms.load("model.pkl", on_mismatch="raise")
+```
+
+`save()` creates `model.pkl` and `model.pkl.manifest.json`. `load()` verifies
+the manifest and artifact before deserializing. `on_mismatch` accepts `warn`,
+`raise`, or `ignore`; integrity verification is always performed.
+
+## Verify without loading
+
+```python
+import modelstamp as ms
+
+manifest = ms.inspect("model.pkl")  # schema validation only
+ms.verify("model.pkl")              # size and SHA-256 verification
+report = ms.check("model.pkl")      # verification plus environment comparison
+if report:
+    print(report)
+```
+
+`inspect()`, `verify()`, and `check()` do not deserialize the artifact.
+
+## Optional HMAC authentication
+
+```python
+import os
+import modelstamp as ms
+
+key = os.environ["MODELSTAMP_SIGNING_KEY"].encode()
+ms.save(model, "model.joblib", signing_key=key, key_id="production")
+restored, manifest = ms.load(
+    "model.joblib",
+    signing_keys={"production": key},
+)
+```
+
+HMAC uses the same secret for signing and verification. Anyone who can verify
+can also create a valid signature. Modelstamp does not provide asymmetric
+public-key signatures and does not make untrusted pickle or joblib data safe.
+
+## Public API
+
+- `save(obj, path, metadata=None, backend="auto", include_git=True,
+  signing_key=None, key_id=None) -> Manifest`
+- `load(path, on_mismatch="warn", backend="auto", return_manifest=True,
+  signing_key=None, signing_keys=None)`
+- `verify(path, signing_key=None, signing_keys=None) -> None`
+- `check(path, signing_key=None, signing_keys=None) -> MismatchReport`
+- `inspect(path) -> Manifest`
+
+## Start here
+
+- [Quick start](https://anaghadhekne.github.io/modelstamp/quickstart/): install,
+  save, check, verify, and load an artifact.
+- [API reference](https://anaghadhekne.github.io/modelstamp/api/): public Python
+  functions and return types.
+- [Runnable examples](https://anaghadhekne.github.io/modelstamp/examples/):
+  scikit-learn, integrity failure, and HMAC examples.
+
+## Use-case guides
+
+- [Detect dependency drift](https://anaghadhekne.github.io/modelstamp/dependency-drift/)
+- [Verify joblib artifacts](https://anaghadhekne.github.io/modelstamp/verify-joblib/)
+- [CI/CD verification](https://anaghadhekne.github.io/modelstamp/ci/)
+- [Comparisons and scope](https://anaghadhekne.github.io/modelstamp/comparisons/)
+
+## Security and operations
+
+- [Security boundary](https://anaghadhekne.github.io/modelstamp/security/)
+- [HMAC signing and key rotation](https://anaghadhekne.github.io/modelstamp/signing/)
+- [Benchmarks](https://anaghadhekne.github.io/modelstamp/benchmarks/)
+
+## Package and source
+
+- [PyPI](https://pypi.org/project/modelstamp/)
+- [GitHub](https://github.com/AnaghaDhekne/modelstamp)
+- [Zenodo concept DOI](https://doi.org/10.5281/zenodo.22036020)
+- [Consolidated machine-readable reference](https://anaghadhekne.github.io/modelstamp/llms-full.txt)

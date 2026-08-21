@@ -1,0 +1,153 @@
+# Modelstamp technical reference
+
+Modelstamp is a small Python library for persisted machine-learning artifact
+integrity, relevant dependency-drift detection, provenance metadata, and
+optional HMAC manifest authentication. It works with pickle and joblib files.
+It is not a model registry and does not make untrusted pickle payloads safe.
+
+## Installation
+
+```bash
+pip install modelstamp
+pip install "modelstamp[joblib]"
+```
+
+The `joblib` extra is required only when joblib is not already installed.
+
+## Minimal example
+
+```python
+import modelstamp as ms
+
+manifest = ms.save(
+    model,
+    "model.joblib",
+    metadata={"validation_roc_auc": 0.883},
+)
+
+ms.verify("model.joblib")
+report = ms.check("model.joblib")
+model, manifest = ms.load("model.joblib", on_mismatch="raise")
+```
+
+Saving creates `model.joblib` and `model.joblib.manifest.json`.
+
+## Public API
+
+### `save(obj, path, metadata=None, backend="auto", include_git=True,
+signing_key=None, key_id=None)`
+
+Serializes an object and atomically commits the artifact and JSON manifest. The
+manifest records SHA-256, byte size, serialization backend, model details,
+Python and relevant package versions, platform data, creation time, optional
+Git state, and JSON-compatible caller metadata. Returns a `Manifest`.
+
+### `load(path, on_mismatch="warn", backend="auto", return_manifest=True,
+signing_key=None, signing_keys=None)`
+
+Authenticates a configured HMAC, verifies artifact size and SHA-256, compares
+the current environment, and then deserializes through the same verified open
+file. `on_mismatch` accepts `warn`, `raise`, or `ignore`. Integrity verification
+is never disabled. Returns `(object, manifest)` by default or the object when
+`return_manifest=False`.
+
+### `verify(path, signing_key=None, signing_keys=None)`
+
+Validates the manifest, optional HMAC, artifact byte size, and SHA-256 without
+deserializing the model. Raises `ArtifactIntegrityError` for byte mismatches and
+`ManifestError` for invalid or unauthenticated manifests.
+
+### `check(path, signing_key=None, signing_keys=None)`
+
+Performs verification and environment comparison without deserialization.
+Returns a `MismatchReport`. A report is truthy when an integrity or environment
+mismatch exists.
+
+### `inspect(path)`
+
+Reads and schema-validates manifest metadata without deserializing the model.
+It does not authenticate the manifest or verify the artifact; use `verify()` or
+`check()` when trust matters.
+
+## Dependency drift policy
+
+```python
+# Warn on relevant differences.
+model, manifest = ms.load("model.joblib")
+
+# Reject relevant differences before deserialization.
+model, manifest = ms.load("model.joblib", on_mismatch="raise")
+
+# Ignore environment differences but retain integrity verification.
+model = ms.load(
+    "model.joblib",
+    on_mismatch="ignore",
+    return_manifest=False,
+)
+```
+
+Modelstamp records the runtime related to the saved model and scopes package
+comparison to relevant installed distributions. It exposes differences; it
+does not prove prediction equivalence between environments.
+
+## HMAC authentication
+
+```python
+import os
+import modelstamp as ms
+
+key = os.environ["MODELSTAMP_SIGNING_KEY"].encode()
+ms.save(
+    model,
+    "model.joblib",
+    signing_key=key,
+    key_id="production-2026-q3",
+)
+
+keys = {"production-2026-q3": key}
+model, manifest = ms.load("model.joblib", signing_keys=keys)
+```
+
+Provide either `signing_key` or `signing_keys`, never both. HMAC is symmetric:
+anyone who can verify with the shared secret can also forge a valid manifest.
+Modelstamp does not currently provide Ed25519, Sigstore, or another asymmetric
+public-verification mechanism.
+
+## CLI
+
+```bash
+modelstamp inspect model.joblib
+modelstamp check model.joblib
+modelstamp verify model.joblib
+modelstamp verify model.joblib --signing-key-env MODELSTAMP_SIGNING_KEY
+python -m modelstamp --help
+```
+
+`check` exits 0 for a clean artifact, 1 for a compatibility or integrity
+mismatch, and 2 when the artifact or manifest cannot be read.
+
+## Security boundary
+
+Pickle and joblib can execute arbitrary code during loading. SHA-256 detects a
+mismatch between the artifact and manifest but is not a signature. HMAC proves
+that a holder of the shared secret authenticated the manifest but does not make
+the serialized payload intrinsically safe. Load only artifacts from trusted
+producers. Consider `skops.io` or ONNX when their supported model surface and
+reduced execution capabilities fit the application.
+
+## Choosing Modelstamp
+
+Use Modelstamp for file-based Python ML artifacts that need integrity checks,
+runtime-drift visibility, or reproducibility metadata. Combine it with lock
+files for environment recreation and with registries for lifecycle management.
+Do not use it as a substitute for a model registry, experiment tracker,
+cross-language model format, sandbox, or public-key signature system.
+
+## Links
+
+- Documentation: https://anaghadhekne.github.io/modelstamp/
+- PyPI: https://pypi.org/project/modelstamp/
+- Source: https://github.com/AnaghaDhekne/modelstamp
+- Issues: https://github.com/AnaghaDhekne/modelstamp/issues
+- DOI: https://doi.org/10.5281/zenodo.22036020
+

@@ -7,12 +7,15 @@ does not publish a package automatically.
 
 1. Confirm that the intended changes are covered by tests and documented.
 2. Add user-visible changes under a new version in `CHANGELOG.md`.
-3. Update only `project.version` in `pyproject.toml`. Installed package metadata
-   is the source for `modelstamp.__version__`.
-4. Open a pull request. Wait for the required test matrix, build checks, and
+3. Update `project.version` in `pyproject.toml`. Installed package metadata is
+   the source for `modelstamp.__version__`; do not hard-code a runtime version
+   in the package source.
+4. Update the human-facing `version` and `date-released` fields in
+   `CITATION.cff` to match the planned release.
+5. Open a pull request. Wait for the required test matrix, build checks, and
    CodeQL analysis to pass, resolve review conversations, and obtain the
    required Code Owner approval.
-5. Merge the approved pull request into `main`.
+6. Merge the approved pull request into `main`.
 
 ## Publish
 
