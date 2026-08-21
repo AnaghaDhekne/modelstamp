@@ -149,5 +149,4 @@ cross-language model format, sandbox, or public-key signature system.
 - PyPI: https://pypi.org/project/modelstamp/
 - Source: https://github.com/AnaghaDhekne/modelstamp
 - Issues: https://github.com/AnaghaDhekne/modelstamp/issues
-- DOI: https://doi.org/10.5281/zenodo.22036020
-
+- DOI: https://doi.org/10.5281/zenodo.22047771
