@@ -15,6 +15,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - A reproducible dependency-drift matrix covering scikit-learn, XGBoost,
   LightGBM, NumPy, joblib, and an unrelated-package noise control.
 
+### Fixed
+
+- Track scikit-learn as relevant to LightGBM's sklearn-compatible estimators,
+  so version drift is reported before embedded sklearn objects are loaded (#25).
+
 ## [0.1.3] - 2026-08-21
 
 ### Added

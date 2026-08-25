@@ -66,3 +66,7 @@ two environments will produce identical predictions; it makes recorded
 environment differences visible so the caller can enforce an appropriate
 policy.
 
+Framework wrappers can introduce relevant dependencies beyond their top-level
+package. LightGBM's scikit-learn-compatible estimators therefore track
+`scikit-learn` alongside LightGBM, NumPy, and SciPy. This allows `check()` to
+report scikit-learn drift before an embedded sklearn object is deserialized.

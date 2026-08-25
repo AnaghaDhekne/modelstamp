@@ -37,9 +37,14 @@ jobs:
             expected: xgboost
           - scenario: lightgbm-cross-version
             framework: lightgbm
-            save-spec: lightgbm==4.5.0 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
-            check-spec: lightgbm==4.6.0 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
+            save-spec: lightgbm==4.5.0 scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
+            check-spec: lightgbm==4.6.0 scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
             expected: lightgbm
+          - scenario: lightgbm-embedded-sklearn-drift
+            framework: lightgbm
+            save-spec: lightgbm==4.6.0 scikit-learn==1.3.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
+            check-spec: lightgbm==4.6.0 scikit-learn==1.9.0 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
+            expected: scikit-learn
           - scenario: numpy-relevant-change
             framework: sklearn
             save-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2

@@ -380,6 +380,7 @@ def test_malformed_steps_attribute_does_not_break_save(tmp_path):
         ("joblib.memory", {"joblib"}),
         ("statsmodels.api", {"numpy", "pandas", "scipy", "statsmodels"}),
         ("xgboost.sklearn", {"numpy", "scipy", "xgboost"}),
+        ("lightgbm.sklearn", {"lightgbm", "numpy", "scikit-learn", "scipy"}),
     ],
 )
 def test_model_details_include_dependency_bundle(module, expected):
