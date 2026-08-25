@@ -26,3 +26,8 @@ numbers measure this environment only; storage and CPU will change results.
 The nearly constant throughput demonstrates the expected linear scaling. The
 benchmark measures a warm cache; cold storage and network filesystems can be
 substantially slower.
+
+Dependency-drift behavior has a separate CI-enforced matrix covering eight
+pinned save/check environment pairs. See the
+[dependency-drift validation matrix](https://anaghadhekne.github.io/modelstamp/drift-benchmarks/)
+for scenarios, observed package changes, and reproduction instructions.

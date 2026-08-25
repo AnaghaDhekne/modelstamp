@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-08-25
+
 ### Added
 
 - Executable trust-boundary tests covering artifact and manifest replacement,

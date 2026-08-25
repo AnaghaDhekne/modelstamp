@@ -5,6 +5,7 @@ __pycache__/
 build/
 dist/
 .pytest_cache/
+.hypothesis/
 .ruff_cache/
 .venv/
 venv/

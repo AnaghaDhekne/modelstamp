@@ -80,8 +80,10 @@ public-key signatures and does not make untrusted pickle or joblib data safe.
 ## Use-case guides
 
 - [Detect dependency drift](https://anaghadhekne.github.io/modelstamp/dependency-drift/)
+- [Dependency-drift validation matrix](https://anaghadhekne.github.io/modelstamp/drift-benchmarks/): eight CI-enforced cross-environment and noise-control cases, including scikit-learn drift beneath a LightGBM wrapper.
 - [Verify joblib artifacts](https://anaghadhekne.github.io/modelstamp/verify-joblib/)
 - [CI/CD verification](https://anaghadhekne.github.io/modelstamp/ci/)
+- [Model-risk trust-boundary case study](https://anaghadhekne.github.io/modelstamp/model-risk-case-study/)
 - [Comparisons and scope](https://anaghadhekne.github.io/modelstamp/comparisons/)
 
 ## Security and operations

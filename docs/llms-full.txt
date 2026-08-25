@@ -90,6 +90,12 @@ Modelstamp records the runtime related to the saved model and scopes package
 comparison to relevant installed distributions. It exposes differences; it
 does not prove prediction equivalence between environments.
 
+Framework wrappers can introduce relevant dependencies beyond their top-level
+package. LightGBM's scikit-learn-compatible estimators track scikit-learn
+alongside LightGBM, NumPy, and SciPy. The CI-enforced dependency-drift matrix
+tests eight real cross-environment cases, including this embedded sklearn drift
+and an unrelated pandas change that must remain suppressed.
+
 ## HMAC authentication
 
 ```python
@@ -146,6 +152,8 @@ cross-language model format, sandbox, or public-key signature system.
 ## Links
 
 - Documentation: https://anaghadhekne.github.io/modelstamp/
+- Dependency-drift matrix: https://anaghadhekne.github.io/modelstamp/drift-benchmarks/
+- Model-risk case study: https://anaghadhekne.github.io/modelstamp/model-risk-case-study/
 - PyPI: https://pypi.org/project/modelstamp/
 - Source: https://github.com/AnaghaDhekne/modelstamp
 - Issues: https://github.com/AnaghaDhekne/modelstamp/issues
