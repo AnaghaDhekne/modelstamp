@@ -6,8 +6,8 @@ saves a real fitted model under environment A, and runs `modelstamp.check()`
 under environment B without deserializing the artifact.
 
 The workflow fails when the observed changed-package set differs from the
-expected set. The matrix includes eight cases:
-[GitHub Actions run 32859678350](https://github.com/AnaghaDhekne/modelstamp/actions/runs/32859678350).
+expected set. The recorded run completed successfully for all eight cases:
+[GitHub Actions run 32865721805](https://github.com/AnaghaDhekne/modelstamp/actions/runs/32865721805).
 
 | Scenario | Save environment | Check environment | Observed change | Interpretation |
 | --- | --- | --- | --- | --- |
