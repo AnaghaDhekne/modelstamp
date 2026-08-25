@@ -271,7 +271,7 @@ def _model_details(obj: Any) -> Tuple[Dict[str, object], List[str]]:
         "pandas": {"numpy", "pandas"},
         "joblib": {"joblib"},
         "xgboost": {"numpy", "scipy", "xgboost"},
-        "lightgbm": {"lightgbm", "numpy", "scipy"},
+        "lightgbm": {"lightgbm", "numpy", "scikit-learn", "scipy"},
         "catboost": {"catboost", "numpy"},
         "statsmodels": {"numpy", "pandas", "scipy", "statsmodels"},
     }
