@@ -12,6 +12,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   unsigned manifest edits, shared-key forgery, and signed rollback/replay.
 - A model-risk case study documenting expected outcomes, observed behavior,
   control interpretation, and residual integrity risks (#21).
+- A reproducible dependency-drift matrix covering scikit-learn, XGBoost,
+  LightGBM, NumPy, joblib, and an unrelated-package noise control.
 
 ## [0.1.3] - 2026-08-21
 
