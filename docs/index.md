@@ -30,6 +30,8 @@ Start with the [quick start](quickstart.md), then review the
 - [Detect dependency drift](dependency-drift.md) without loading the model.
 - [Verify a joblib artifact](verify-joblib.md) before deserialization.
 - Add [artifact checks to CI/CD](ci.md).
+- Review the CI-enforced [dependency-drift validation matrix](drift-benchmarks.md).
+- Examine the runnable [model-risk trust-boundary case study](model-risk-case-study.md).
 - Understand [when to use Modelstamp](comparisons.md) with lock files,
   registries, `skops.io`, or ONNX.
 - Run the repository's [complete examples](examples.md).

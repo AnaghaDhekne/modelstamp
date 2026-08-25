@@ -5,24 +5,32 @@ does not publish a package automatically.
 
 ## Before the release
 
-1. Confirm that the intended changes are covered by tests and documented.
+1. Confirm that the intended changes are covered by tests and documented. Audit
+   the README, MkDocs guides and navigation, examples, `llms.txt`,
+   `llms-full.txt`, package metadata, and any version- or behavior-bearing
+   references affected by the release.
 2. Add user-visible changes under a new version in `CHANGELOG.md`.
 3. Update `project.version` in `pyproject.toml`. Installed package metadata is
    the source for `modelstamp.__version__`; do not hard-code a runtime version
    in the package source.
 4. Update the human-facing `version` and `date-released` fields in
    `CITATION.cff` to match the planned release.
-5. Open a pull request. Wait for the required test matrix, build checks, and
+5. Search the repository for the previous version and release date. Historical
+   changelog entries may remain; current metadata, badges, examples, and guides
+   must not accidentally describe the previous release. Confirm DOI links use
+   the intended Zenodo concept DOI unless a version-specific DOI is required.
+6. Build the documentation with strict link and navigation checks.
+7. Open a pull request. Wait for the required test matrix, build checks, and
    CodeQL analysis to pass, resolve review conversations, and obtain the
    required Code Owner approval.
-6. Merge the approved pull request into `main`.
+8. Merge the approved pull request into `main`.
 
 ## Publish
 
 1. Confirm that the Zenodo GitHub integration is enabled for the repository.
    Without it, publishing a GitHub release will not create the corresponding
    Zenodo archive and version DOI.
-2. Create a tag matching the version, for example `v0.1.1`, on the release
+2. Create a tag matching the version, for example `vX.Y.Z`, on the release
    commit in `main`.
 3. Publish a GitHub release from that tag.
 4. Confirm that the `Publish to PyPI` workflow verifies the tagged commit is

@@ -27,6 +27,7 @@ print(restored, manifest.relevant_packages)
 
 [Documentation](https://anaghadhekne.github.io/modelstamp/) ·
 [Benchmarks](https://github.com/AnaghaDhekne/modelstamp/blob/main/BENCHMARKS.md) ·
+[Drift matrix](https://anaghadhekne.github.io/modelstamp/drift-benchmarks/) ·
 [Security policy](https://github.com/AnaghaDhekne/modelstamp/security/policy)
 
 `modelstamp` verifies persisted Python machine-learning models, detects relevant
@@ -108,6 +109,12 @@ The manifest records:
 `load()` verifies the artifact before deserializing it. It then compares the
 current runtime with the saved runtime and warns when a relevant dependency has
 changed.
+
+Relevance follows the persisted model type rather than every installed package.
+For example, LightGBM's scikit-learn-compatible estimators track scikit-learn
+alongside LightGBM, NumPy, and SciPy, so embedded sklearn drift is visible before
+loading. The CI-enforced [dependency-drift matrix](https://anaghadhekne.github.io/modelstamp/drift-benchmarks/)
+documents eight real cross-environment and noise-control cases.
 
 Operations targeting the same artifact are serialized across local processes.
 During loading, verification and deserialization use the same open file so a
@@ -243,6 +250,10 @@ and HMAC-authenticated manifests in the
 [`examples/`](https://github.com/AnaghaDhekne/modelstamp/tree/main/examples)
 directory.
 
+The [model-risk case study](https://anaghadhekne.github.io/modelstamp/model-risk-case-study/)
+provides a runnable trust-boundary matrix for tampering, unsigned replacement,
+HMAC enforcement, shared-key forgery, and rollback/replay.
+
 ## API at a glance
 
 | Operation | Purpose | Deserializes the model? |
@@ -297,7 +308,8 @@ not require a package release.
 
 Property-based tests exercise malformed manifest structures. Verification
 throughput for representative artifact sizes is recorded in
-[BENCHMARKS.md](BENCHMARKS.md).
+[BENCHMARKS.md](BENCHMARKS.md), while cross-version compatibility behavior is
+covered by the [dependency-drift matrix](https://anaghadhekne.github.io/modelstamp/drift-benchmarks/).
 
 Contributions are welcome. See the
 [contribution guide](https://github.com/AnaghaDhekne/modelstamp/blob/main/CONTRIBUTING.md)

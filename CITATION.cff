@@ -8,9 +8,9 @@ authors:
 repository-code: "https://github.com/AnaghaDhekne/modelstamp"
 url: "https://anaghadhekne.github.io/modelstamp/"
 license: MIT
-version: 0.1.3
+version: 0.1.4
 doi: 10.5281/zenodo.22047771
-date-released: 2026-08-21
+date-released: 2026-08-25
 keywords:
   - machine learning
   - model persistence

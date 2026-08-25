@@ -12,7 +12,7 @@ compares them with the environment in which it is checked or loaded.
 ```python
 import modelstamp as ms
 
-ms.save(model, "model.joblib", metadata={"training_run": "2026-08-21"})
+ms.save(model, "model.joblib", metadata={"training_run": "training-run-42"})
 ```
 
 This creates the serialized model and a schema-validated JSON manifest:
@@ -70,3 +70,6 @@ Framework wrappers can introduce relevant dependencies beyond their top-level
 package. LightGBM's scikit-learn-compatible estimators therefore track
 `scikit-learn` alongside LightGBM, NumPy, and SciPy. This allows `check()` to
 report scikit-learn drift before an embedded sklearn object is deserialized.
+
+See the CI-enforced [dependency-drift validation matrix](drift-benchmarks.md)
+for the exact pinned environments and observed results across eight scenarios.

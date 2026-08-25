@@ -7,3 +7,6 @@ See [`BENCHMARKS.md`](https://github.com/AnaghaDhekne/modelstamp/blob/main/BENCH
 for measured results and the exact reproduction command. The benchmark script
 is available at `benchmarks/benchmark_verify.py`.
 
+Compatibility behavior is validated separately by the CI-enforced
+[dependency-drift matrix](drift-benchmarks.md), which saves and checks fitted
+models across eight pinned environment pairs.
