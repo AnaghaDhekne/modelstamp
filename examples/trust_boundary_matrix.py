@@ -55,9 +55,7 @@ def run_matrix(root: Path) -> list[Result]:
     ms.save({"model": "approved", "version": 1}, artifact, include_git=False)
     original = artifact.read_bytes()
     artifact.write_bytes(original[:-1] + bytes([original[-1] ^ 1]))
-    observed = _expect_rejection(
-        lambda: ms.verify(artifact), "SHA-256 mismatch"
-    )
+    observed = _expect_rejection(lambda: ms.verify(artifact), "SHA-256 mismatch")
     results.append(
         Result("artifact changed; manifest unchanged", "reject", observed, True)
     )
@@ -92,11 +90,14 @@ def run_matrix(root: Path) -> list[Result]:
     _sidecar(hash_claim).write_text(
         json.dumps(manifest_data, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
-    observed = _expect_rejection(
-        lambda: ms.verify(hash_claim), "SHA-256 mismatch"
-    )
+    observed = _expect_rejection(lambda: ms.verify(hash_claim), "SHA-256 mismatch")
     results.append(
-        Result("unsigned manifest hash edited; artifact unchanged", "reject", observed, True)
+        Result(
+            "unsigned manifest hash edited; artifact unchanged",
+            "reject",
+            observed,
+            True,
+        )
     )
 
     # In an unsigned manifest, descriptive model identity fields are not
@@ -205,9 +206,7 @@ def run_matrix(root: Path) -> list[Result]:
     ms.verify(current, signing_key=trusted_key)
     loaded = ms.load(current, signing_key=trusted_key, return_manifest=False)
     observed = f"ACCEPTED — loaded version={loaded['version']}"
-    results.append(
-        Result("older valid signed pair replayed", "accept", observed, True)
-    )
+    results.append(Result("older valid signed pair replayed", "accept", observed, True))
 
     return results
 
