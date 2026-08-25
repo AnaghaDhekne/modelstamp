@@ -65,9 +65,7 @@ def test_replacement_signed_with_untrusted_key_is_rejected(tmp_path):
     approved = tmp_path / "approved.pkl"
     replacement = tmp_path / "replacement.pkl"
     trusted_key = b"trusted-key"
-    ms.save(
-        {"model": "approved"}, approved, include_git=False, signing_key=trusted_key
-    )
+    ms.save({"model": "approved"}, approved, include_git=False, signing_key=trusted_key)
     ms.save(
         {"model": "replacement"},
         replacement,
@@ -83,9 +81,7 @@ def test_shared_key_holder_can_create_an_accepted_replacement(tmp_path):
     approved = tmp_path / "approved.pkl"
     replacement = tmp_path / "replacement.pkl"
     shared_key = b"shared-key"
-    ms.save(
-        {"model": "approved"}, approved, include_git=False, signing_key=shared_key
-    )
+    ms.save({"model": "approved"}, approved, include_git=False, signing_key=shared_key)
     ms.save(
         {"model": "replacement"},
         replacement,
@@ -94,9 +90,9 @@ def test_shared_key_holder_can_create_an_accepted_replacement(tmp_path):
     )
     _replace_pair(replacement, approved)
     ms.verify(approved, signing_key=shared_key)
-    assert ms.load(
-        approved, signing_key=shared_key, return_manifest=False
-    ) == {"model": "replacement"}
+    assert ms.load(approved, signing_key=shared_key, return_manifest=False) == {
+        "model": "replacement"
+    }
 
 
 def test_older_valid_signed_pair_can_be_replayed(tmp_path):
@@ -117,6 +113,6 @@ def test_older_valid_signed_pair_can_be_replayed(tmp_path):
     )
     _replace_pair(old, current)
     ms.verify(current, signing_key=shared_key)
-    assert ms.load(current, signing_key=shared_key, return_manifest=False)[
-        "version"
-    ] == 1
+    assert (
+        ms.load(current, signing_key=shared_key, return_manifest=False)["version"] == 1
+    )
