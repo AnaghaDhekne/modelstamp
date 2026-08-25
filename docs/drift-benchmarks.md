@@ -6,7 +6,7 @@ saves a real fitted model under environment A, and runs `modelstamp.check()`
 under environment B without deserializing the artifact.
 
 The workflow fails when the observed changed-package set differs from the
-expected set. The recorded run completed successfully for all seven cases:
+expected set. The matrix includes eight cases:
 [GitHub Actions run 32859678350](https://github.com/AnaghaDhekne/modelstamp/actions/runs/32859678350).
 
 | Scenario | Save environment | Check environment | Observed change | Interpretation |
@@ -15,6 +15,7 @@ expected set. The recorded run completed successfully for all seven cases:
 | sklearn minor | scikit-learn 1.5.2 | scikit-learn 1.6.1 | `scikit-learn` | Minor changes are reported. |
 | XGBoost cross-version | XGBoost 2.1.3 | XGBoost 3.0.2 | `xgboost` | Estimator-specific drift is reported. |
 | LightGBM cross-version | LightGBM 4.5.0 | LightGBM 4.6.0 | `lightgbm` | Estimator-specific drift is reported. |
+| LightGBM sklearn wrapper | sklearn 1.3.2 | sklearn 1.9.0 | `scikit-learn` | Drift beneath the wrapper is reported before load. |
 | NumPy relevance | NumPy 1.26.4 | NumPy 2.0.2 | `numpy` | A relevant numerical dependency is reported. |
 | joblib relevance | joblib 1.3.2 | joblib 1.4.2 | `joblib` | A relevant serialization dependency is reported. |
 | pandas noise control | pandas 2.2.3 | pandas 2.3.1 | None | An unrelated installed-package change is suppressed. |
@@ -27,6 +28,7 @@ constant. The XGBoost and LightGBM cases held NumPy, SciPy, and joblib constant.
 
 - Modelstamp reports exact version differences, including patch changes.
 - Framework-specific packages are selected from the persisted model type.
+- LightGBM's sklearn-compatible wrapper also tracks scikit-learn.
 - NumPy and joblib are treated as relevant to a scikit-learn pipeline.
 - A pandas-only change does not create noise for that pipeline, even when
   pandas is installed and recorded in both environments.
