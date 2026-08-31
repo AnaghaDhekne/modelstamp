@@ -9,4 +9,4 @@ is available at `benchmarks/benchmark_verify.py`.
 
 Compatibility behavior is validated separately by the CI-enforced
 [dependency-drift matrix](drift-benchmarks.md), which saves and checks fitted
-models across eight pinned environment pairs.
+models across 14 controlled environment scenarios.
