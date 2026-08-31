@@ -60,6 +60,26 @@ jobs:
             save-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2 pandas==2.2.3
             check-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2 pandas==2.3.1
             expected: ""
+          - scenario: identical-environment-control
+            framework: sklearn
+            save-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
+            check-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
+            expected: ""
+          - scenario: scipy-relevant-change
+            framework: sklearn
+            save-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.12.0 joblib==1.4.2
+            check-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
+            expected: scipy
+          - scenario: unrelated-requests-noise
+            framework: sklearn
+            save-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2 requests==2.31.0
+            check-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2 requests==2.32.3
+            expected: ""
+          - scenario: catboost-cross-version
+            framework: catboost
+            save-spec: catboost==1.2.7 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
+            check-spec: catboost==1.2.8 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
+            expected: catboost
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
