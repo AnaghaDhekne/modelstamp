@@ -22,7 +22,11 @@ Each scenario then calls `verify()` before any model is deserialized.
 | Replacement pair signed by a shared-key holder | Accept | Replacement loaded | A key holder has verification and signing authority. |
 | Older valid signed pair replayed | Accept | Older version loaded | HMAC authenticates contents but does not establish freshness. |
 
-Run the complete matrix from the repository root:
+The same eight scenarios are enforced in GitHub Actions by
+`.github/workflows/trust-boundary-validation.yml`, so changes to the implementation
+or case-study script rerun the trust-boundary evidence automatically.
+
+Run the complete matrix locally from the repository root:
 
 ```bash
 PYTHONPATH=src python examples/trust_boundary_matrix.py
