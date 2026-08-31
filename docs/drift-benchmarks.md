@@ -6,8 +6,7 @@ saves a real fitted model under environment A, and runs `modelstamp.check()`
 under environment B without deserializing the artifact.
 
 The workflow fails when the observed changed-package set differs from the
-expected set. The recorded run completed successfully for all eight cases:
-[GitHub Actions run 32865721805](https://github.com/AnaghaDhekne/modelstamp/actions/runs/32865721805).
+expected set. The CI-enforced matrix currently contains 14 scenarios spanning relevant framework and supporting-dependency changes, unrelated-package controls, an identical-environment control, and a broader noisy-environment control. Each matrix job fails if the observed changed-package set differs from the expected set.
 
 | Scenario | Save environment | Check environment | Observed change | Interpretation |
 | --- | --- | --- | --- | --- |
@@ -19,6 +18,12 @@ expected set. The recorded run completed successfully for all eight cases:
 | NumPy relevance | NumPy 1.26.4 | NumPy 2.0.2 | `numpy` | A relevant numerical dependency is reported. |
 | joblib relevance | joblib 1.3.2 | joblib 1.4.2 | `joblib` | A relevant serialization dependency is reported. |
 | pandas noise control | pandas 2.2.3 | pandas 2.3.1 | None | An unrelated installed-package change is suppressed. |
+| identical environment | same pinned sklearn stack | same pinned sklearn stack | None | An unchanged environment produces no drift. |
+| SciPy relevance | SciPy 1.12.0 | SciPy 1.13.1 | `scipy` | A relevant numerical dependency is reported. |
+| requests noise control | requests 2.31.0 | requests 2.32.3 | None | An unrelated HTTP-package change is suppressed. |
+| noisy environment control | six unrelated package versions change | six unrelated package versions change | None | Broader unrelated environment noise is suppressed. |
+| noisy environment + relevant drift | same six unrelated changes + sklearn 1.5.1 | same six unrelated changes + sklearn 1.5.2 | `scikit-learn` | Relevant drift remains visible amid unrelated changes. |
+| CatBoost cross-version | CatBoost 1.2.7 | CatBoost 1.2.8 | `catboost` | Estimator-specific drift is reported. |
 
 All other pinned packages in a row were held constant. The sklearn cases held
 NumPy 1.26.4, SciPy 1.13.1, and (except for the joblib case) joblib 1.4.2
@@ -30,8 +35,11 @@ constant. The XGBoost and LightGBM cases held NumPy, SciPy, and joblib constant.
 - Framework-specific packages are selected from the persisted model type.
 - LightGBM's sklearn-compatible wrapper also tracks scikit-learn.
 - NumPy and joblib are treated as relevant to a scikit-learn pipeline.
-- A pandas-only change does not create noise for that pipeline, even when
-  pandas is installed and recorded in both environments.
+- Unrelated pandas and requests changes do not create noise for that pipeline.
+- An identical environment produces no drift.
+- A broader control changing six unrelated packages is suppressed, while the
+  companion case still reports scikit-learn when that relevant dependency also changes.
+- CatBoost and SciPy changes are reported when relevant.
 
 This matrix validates detection and relevance filtering. It does not claim
 that every reported version change will alter predictions, nor does it define
