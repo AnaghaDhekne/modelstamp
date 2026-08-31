@@ -114,7 +114,7 @@ Relevance follows the persisted model type rather than every installed package.
 For example, LightGBM's scikit-learn-compatible estimators track scikit-learn
 alongside LightGBM, NumPy, and SciPy, so embedded sklearn drift is visible before
 loading. The CI-enforced [dependency-drift matrix](https://anaghadhekne.github.io/modelstamp/drift-benchmarks/)
-documents eight real cross-environment and noise-control cases.
+documents 14 CI-enforced cross-environment, relevant-dependency, and noise-control cases.
 
 Operations targeting the same artifact are serialized across local processes.
 During loading, verification and deserialization use the same open file so a
