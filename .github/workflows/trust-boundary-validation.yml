@@ -1,0 +1,39 @@
+name: Trust boundary validation
+
+on:
+  push:
+    paths:
+      - ".github/workflows/trust-boundary-validation.yml"
+      - "examples/trust_boundary_matrix.py"
+      - "src/**"
+  pull_request:
+    paths:
+      - ".github/workflows/trust-boundary-validation.yml"
+      - "examples/trust_boundary_matrix.py"
+      - "src/**"
+
+permissions:
+  contents: read
+
+jobs:
+  trust-boundary-matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install Modelstamp
+        run: python -m pip install .
+      - name: Run eight-scenario trust-boundary matrix
+        run: |
+          PYTHONPATH=src python examples/trust_boundary_matrix.py | tee trust-boundary-results.txt
+          test "$(grep -c '[[]PASS[]]' trust-boundary-results.txt)" -eq 8
+      - name: Publish observed results
+        if: always()
+        run: |
+          echo "## Modelstamp trust-boundary validation" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          test ! -f trust-boundary-results.txt || cat trust-boundary-results.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
