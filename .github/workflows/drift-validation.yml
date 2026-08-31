@@ -75,6 +75,16 @@ jobs:
             save-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2 requests==2.31.0
             check-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2 requests==2.32.3
             expected: ""
+          - scenario: noisy-environment-control
+            framework: sklearn
+            save-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2 requests==2.31.0 click==8.1.7 rich==13.7.1 pyyaml==6.0.1 packaging==23.2 attrs==23.2.0
+            check-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2 requests==2.32.3 click==8.1.8 rich==13.9.4 pyyaml==6.0.2 packaging==24.2 attrs==24.3.0
+            expected: ""
+          - scenario: noisy-environment-plus-relevant-drift
+            framework: sklearn
+            save-spec: scikit-learn==1.5.1 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2 requests==2.31.0 click==8.1.7 rich==13.7.1 pyyaml==6.0.1 packaging==23.2 attrs==23.2.0
+            check-spec: scikit-learn==1.5.2 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2 requests==2.32.3 click==8.1.8 rich==13.9.4 pyyaml==6.0.2 packaging==24.2 attrs==24.3.0
+            expected: scikit-learn
           - scenario: catboost-cross-version
             framework: catboost
             save-spec: catboost==1.2.7 numpy==1.26.4 scipy==1.13.1 joblib==1.4.2
