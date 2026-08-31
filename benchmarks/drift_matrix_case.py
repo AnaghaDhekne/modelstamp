@@ -33,6 +33,15 @@ def _fit_model(framework: str):
         return LGBMClassifier(n_estimators=2, max_depth=1, verbose=-1).fit(
             features, target
         )
+    if framework == "catboost":
+        from catboost import CatBoostClassifier
+
+        return CatBoostClassifier(
+            iterations=2,
+            depth=1,
+            verbose=False,
+            random_seed=0,
+        ).fit(features, target)
     raise ValueError(f"unsupported framework: {framework}")
 
 
@@ -94,7 +103,10 @@ def check_case(artifact: Path, scenario: str, expected: set[str]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("phase", choices=("save", "check"))
-    parser.add_argument("--framework", choices=("sklearn", "xgboost", "lightgbm"))
+    parser.add_argument(
+        "--framework",
+        choices=("sklearn", "xgboost", "lightgbm", "catboost"),
+    )
     parser.add_argument("--artifact", type=Path, required=True)
     parser.add_argument("--scenario", required=True)
     parser.add_argument("--expected-changes", default="")
