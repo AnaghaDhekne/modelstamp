@@ -23,9 +23,11 @@ The comparison uses the public APIs of both projects:
 5. Record whether drift is reported and whether the serialization backend's
    loader is invoked before the PyOD strict-version decision.
 
-`run_baseline.py` wraps `joblib.load` only as an observation probe. It does
-not change the serialized object or PyOD's decision logic. Modelstamp's
-`check()` path does not invoke joblib/pickle loading.
+`run_baseline.py` instruments serialization-loader calls as an observation
+probe. The probe does not change the serialized objects or either system's
+decision logic. For Modelstamp, both `joblib.load` and `pickle.load` are
+traced around `modelstamp.check()`; for PyOD, `joblib.load` is traced around
+its strict loading call.
 
 ## Interpretation
 
@@ -35,8 +37,8 @@ evidence is available through a non-deserializing verification path.
 
 Expected interpretation only after execution:
 
-- Modelstamp control: no relevant drift; no deserialization.
-- Modelstamp drift: relevant drift reported; no deserialization.
+- Modelstamp control: no relevant drift; no serialization-loader call.
+- Modelstamp drift: relevant drift reported; no serialization-loader call.
 - PyOD control: load succeeds and necessarily deserializes.
 - PyOD drift: strict version policy may reject, but only after the persisted
   envelope has been deserialized.
