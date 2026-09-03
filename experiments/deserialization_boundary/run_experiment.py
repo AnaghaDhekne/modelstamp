@@ -41,8 +41,7 @@ def force_relevant_drift():
     # deterministic relevant-drift condition. It uses an unsigned manifest.
     manifest_path = ARTIFACT.with_suffix(ARTIFACT.suffix + ".modelstamp.json")
     manifest_path.write_text(
-        json.dumps(manifest, indent=2, sort_keys=True) + "
-", encoding="utf-8"
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
 
 
@@ -81,8 +80,7 @@ def main():
     force_relevant_drift()
 
     observations = [modelstamp_case(), conventional_case()]
-    RESULTS.write_text(json.dumps(observations, indent=2) + "
-", encoding="utf-8")
+    RESULTS.write_text(json.dumps(observations, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(observations, indent=2))
 
     modelstamp_result, conventional_result = observations
