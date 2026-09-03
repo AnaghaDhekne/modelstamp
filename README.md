@@ -9,8 +9,9 @@
 
 ![Modelstamp detecting a tampered machine-learning artifact](https://raw.githubusercontent.com/AnaghaDhekne/modelstamp/main/docs/assets/modelstamp_demo.gif)
 
-**Verify persisted Python ML models before deserialization and detect dependency
-drift between the environments that save and load them.**
+**Pre-deserialization verification for persisted Python machine-learning
+artifacts: detect integrity failures and relevant dependency drift before
+loading pickle or joblib models.**
 
 ```bash
 pip install modelstamp
@@ -30,10 +31,11 @@ print(restored, manifest.relevant_packages)
 [Drift matrix](https://anaghadhekne.github.io/modelstamp/drift-benchmarks/) ·
 [Security policy](https://github.com/AnaghaDhekne/modelstamp/security/policy)
 
-`modelstamp` verifies persisted Python machine-learning models, detects relevant
-dependency drift, and records reproducible environment metadata. It keeps the
-familiar pickle or joblib workflow while making artifact corruption and runtime
-changes visible before deserialization.
+`modelstamp` is a lightweight Python model-persistence layer that records an
+artifact's SHA-256 digest, runtime metadata, and artifact-specific dependencies.
+It verifies integrity, compares environments, and can authenticate manifests
+with HMAC before deserialization. It complements lock files and model registries;
+it does not make untrusted pickle or joblib payloads safe to execute.
 
 Loading a persisted model under different dependency versions is unsupported
 and may fail or behave differently. The
