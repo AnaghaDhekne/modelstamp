@@ -97,4 +97,5 @@ public-key signatures and does not make untrusted pickle or joblib data safe.
 - [PyPI](https://pypi.org/project/modelstamp/)
 - [GitHub](https://github.com/AnaghaDhekne/modelstamp)
 - [Zenodo concept DOI](https://doi.org/10.5281/zenodo.22047771)
+- [Research preprint (arXiv:2609.01781)](https://arxiv.org/abs/2609.01781)
 - [Consolidated machine-readable reference](https://anaghadhekne.github.io/modelstamp/llms-full.txt)
