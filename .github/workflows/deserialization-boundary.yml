@@ -1,0 +1,38 @@
+name: Deserialization boundary
+
+on:
+  pull_request:
+    paths:
+      - "experiments/deserialization_boundary/**"
+      - ".github/workflows/deserialization-boundary.yml"
+      - "src/modelstamp/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install joblib
+
+      - name: Run controlled boundary experiment
+        run: python experiments/deserialization_boundary/run_experiment.py
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deserialization-boundary-results
+          path: experiments/deserialization_boundary/results.json
+          if-no-files-found: warn
