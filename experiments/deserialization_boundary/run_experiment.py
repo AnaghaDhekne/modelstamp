@@ -38,7 +38,7 @@ def establish_controlled_relevant_drift():
 
     current_joblib = packages["joblib"]
     if current_joblib == SENTINEL_VERSION:
-        raise RuntimeError("sentinel joblib version unexpectedly matches installed version")
+        raise RuntimeError(\n            "sentinel joblib version unexpectedly matches installed version"\n        )
 
     # RQ4 isolates ordering after a known relevant mismatch has been established.
     # Relevance inference itself is evaluated separately by RQ1, so this synthetic
