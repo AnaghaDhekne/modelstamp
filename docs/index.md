@@ -22,6 +22,18 @@ The artifact is hashed before deserialization. Dependency changes can warn or
 block loading, and optional HMAC authentication protects the model/manifest
 pair against unauthorized replacement.
 
+The [Modelstamp preprint](https://arxiv.org/abs/2609.01781) documents the threat
+model, 14 controlled environment-drift scenarios, eight trust-boundary
+scenarios, and artifact-size scaling results. Cite it as:
+
+> Anagha Dhekne. "Modelstamp: Pre-Deserialization Verification of
+> Machine-Learning Artifacts and Runtime Environment State." arXiv:2609.01781,
+> 2026.
+
+Software citation metadata and the archived release remain available through
+[`CITATION.cff`](https://github.com/AnaghaDhekne/modelstamp/blob/main/CITATION.cff)
+and the [Zenodo software DOI](https://doi.org/10.5281/zenodo.22047771).
+
 Start with the [quick start](quickstart.md), then review the
 [security boundary](security.md) before loading persisted Python objects.
 
