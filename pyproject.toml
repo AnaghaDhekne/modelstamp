@@ -74,6 +74,7 @@ Issues = "https://github.com/AnaghaDhekne/modelstamp/issues"
 Changelog = "https://github.com/AnaghaDhekne/modelstamp/blob/main/CHANGELOG.md"
 Security = "https://github.com/AnaghaDhekne/modelstamp/security/policy"
 Documentation = "https://anaghadhekne.github.io/modelstamp/"
+Preprint = "https://arxiv.org/abs/2609.01781"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/modelstamp"]
