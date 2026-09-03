@@ -7,7 +7,6 @@ from pyod.utils.persistence import load as pyod_load
 
 import modelstamp
 
-
 ROOT = Path(__file__).resolve().parent
 ARTIFACTS = ROOT / "artifacts"
 RESULTS = ROOT / "results.json"
