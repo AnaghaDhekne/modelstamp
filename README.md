@@ -6,6 +6,7 @@
 [![Python 3.8–3.13](https://img.shields.io/badge/python-3.8%E2%80%933.13-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/AnaghaDhekne/modelstamp/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22047771.svg)](https://doi.org/10.5281/zenodo.22047771)
+[![arXiv](https://img.shields.io/badge/arXiv-2609.01781-b31b1b.svg)](https://arxiv.org/abs/2609.01781)
 
 ![Modelstamp detecting a tampered machine-learning artifact](https://raw.githubusercontent.com/AnaghaDhekne/modelstamp/main/docs/assets/modelstamp_demo.gif)
 
@@ -29,6 +30,7 @@ print(restored, manifest.relevant_packages)
 [Documentation](https://anaghadhekne.github.io/modelstamp/) ·
 [Benchmarks](https://github.com/AnaghaDhekne/modelstamp/blob/main/BENCHMARKS.md) ·
 [Drift matrix](https://anaghadhekne.github.io/modelstamp/drift-benchmarks/) ·
+[Preprint](https://arxiv.org/abs/2609.01781) ·
 [Security policy](https://github.com/AnaghaDhekne/modelstamp/security/policy)
 
 `modelstamp` is a lightweight Python model-persistence layer that records an
@@ -316,6 +318,19 @@ covered by the [dependency-drift matrix](https://anaghadhekne.github.io/modelsta
 Contributions are welcome. See the
 [contribution guide](https://github.com/AnaghaDhekne/modelstamp/blob/main/CONTRIBUTING.md)
 for the local development and pull-request workflow.
+
+## Citation
+
+The [Modelstamp preprint](https://arxiv.org/abs/2609.01781) describes the threat
+model, controlled evaluation, and performance results:
+
+> Anagha Dhekne. "Modelstamp: Pre-Deserialization Verification of
+> Machine-Learning Artifacts and Runtime Environment State." arXiv:2609.01781,
+> 2026.
+
+For software citation metadata and the archived release, use
+[`CITATION.cff`](CITATION.cff) and the
+[Zenodo software DOI](https://doi.org/10.5281/zenodo.22047771).
 
 ## Maintainer
 
