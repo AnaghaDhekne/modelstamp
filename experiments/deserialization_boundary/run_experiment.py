@@ -29,13 +29,10 @@ def save_fixture():
 
 def force_relevant_drift():
     manifest = modelstamp.inspect(ARTIFACT)
-    packages = manifest["environment"]["packages"]
-    for package in packages:
-        if package["name"].lower() == "joblib":
-            package["version"] = "0.0.0-controlled-drift"
-            break
-    else:
+    packages = manifest.environment["packages"]
+    if "joblib" not in packages:
         raise RuntimeError("joblib was not recorded in the manifest")
+    packages["joblib"] = "0.0.0-controlled-drift"
 
     # This experiment intentionally changes reference metadata only to create a
     # deterministic relevant-drift condition. It uses an unsigned manifest.
