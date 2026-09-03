@@ -1,4 +1,5 @@
 import json
+import pickle
 from pathlib import Path
 
 import joblib
@@ -13,7 +14,26 @@ RESULTS = ROOT / "results.json"
 
 
 def modelstamp_observation():
-    report = modelstamp.check(ARTIFACTS / "modelstamp.joblib")
+    calls = []
+    original_joblib_load = joblib.load
+    original_pickle_load = pickle.load
+
+    def traced_joblib_load(*args, **kwargs):
+        calls.append("joblib.load")
+        return original_joblib_load(*args, **kwargs)
+
+    def traced_pickle_load(*args, **kwargs):
+        calls.append("pickle.load")
+        return original_pickle_load(*args, **kwargs)
+
+    joblib.load = traced_joblib_load
+    pickle.load = traced_pickle_load
+    try:
+        report = modelstamp.check(ARTIFACTS / "modelstamp.joblib")
+    finally:
+        joblib.load = original_joblib_load
+        pickle.load = original_pickle_load
+
     return {
         "system": "modelstamp",
         "operation": "check",
@@ -27,8 +47,8 @@ def modelstamp_observation():
             }
             for change in report.package_changes
         ],
-        "deserialized": False,
-        "basis": "modelstamp.check() does not call the serialization backend loader",
+        "deserialized": bool(calls),
+        "loader_calls": calls,
     }
 
 
