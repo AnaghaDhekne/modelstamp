@@ -1,0 +1,64 @@
+name: PyOD baseline
+
+on:
+  pull_request:
+    paths:
+      - "experiments/pyod_baseline/**"
+      - ".github/workflows/pyod-baseline.yml"
+      - "src/modelstamp/**"
+  workflow_dispatch:
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install save environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install "scikit-learn==1.7.2" "pyod==2.0.6"
+
+      - name: Create artifacts
+        run: python experiments/pyod_baseline/create_artifacts.py
+
+      - name: Same-environment control
+        run: |
+          python experiments/pyod_baseline/run_baseline.py
+          cp experiments/pyod_baseline/results.json /tmp/control.json
+
+      - name: Install drift environment
+        run: python -m pip install --upgrade "scikit-learn==1.8.0"
+
+      - name: Drift run
+        run: |
+          python experiments/pyod_baseline/run_baseline.py
+          cp experiments/pyod_baseline/results.json /tmp/drift.json
+
+      - name: Preserve observations
+        run: |
+          mkdir -p experiments/pyod_baseline/output
+          cp /tmp/control.json experiments/pyod_baseline/output/control.json
+          cp /tmp/drift.json experiments/pyod_baseline/output/drift.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("experiments/pyod_baseline/output")
+          control = json.loads((root / "control.json").read_text())
+          drift = json.loads((root / "drift.json").read_text())
+
+          summary = {"control": control, "drift": drift}
+          (root / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+          print(json.dumps(summary, indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pyod-baseline-results
+          path: experiments/pyod_baseline/output/
