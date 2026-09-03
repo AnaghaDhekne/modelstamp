@@ -57,13 +57,11 @@ def establish_controlled_relevant_drift():
 def assert_drift_precondition(current_joblib):
     report = modelstamp.check(ARTIFACT)
     joblib_changes = [
-        change
-        for change in report.package_changes
-        if change.name == "joblib"
+        change for change in report.package_changes if change.name == "joblib"
     ]
-    assert len(joblib_changes) == 1, (
-        "precondition must surface exactly one joblib package change"
-    )
+    assert (
+        len(joblib_changes) == 1
+    ), "precondition must surface exactly one joblib package change"
     change = joblib_changes[0]
     assert change.saved == SENTINEL_VERSION
     assert change.current == current_joblib
