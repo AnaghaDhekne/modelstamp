@@ -1,10 +1,9 @@
 from pathlib import Path
 
+import modelstamp
 from pyod.utils.persistence import save as pyod_save
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
-
-import modelstamp
 
 
 OUT = Path("experiments/pyod_baseline/artifacts")
