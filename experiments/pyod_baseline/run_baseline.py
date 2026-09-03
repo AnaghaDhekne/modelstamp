@@ -2,10 +2,9 @@ import json
 from pathlib import Path
 
 import joblib
+import modelstamp
 import sklearn
 from pyod.utils.persistence import load as pyod_load
-
-import modelstamp
 
 
 ROOT = Path(__file__).resolve().parent
