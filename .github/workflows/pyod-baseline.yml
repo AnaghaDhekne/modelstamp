@@ -22,7 +22,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .
-          python -m pip install "scikit-learn==1.7.2" "pyod==2.0.6"
+          python -m pip install "scikit-learn==1.7.2" "pyod==3.6.5"
 
       - name: Create artifacts
         run: python experiments/pyod_baseline/create_artifacts.py
