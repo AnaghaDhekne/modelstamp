@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Standardized the project framing across `CITATION.cff` and the documentation
+  site metadata as pre-deserialization integrity and environment verification
+  for persisted Python machine-learning artifacts.
+
 ## [0.1.5] - 2026-09-03
 
 ### Added
