@@ -34,6 +34,21 @@ Software citation metadata and the archived release remain available through
 [`CITATION.cff`](https://github.com/AnaghaDhekne/modelstamp/blob/main/CITATION.cff)
 and the [Zenodo software DOI](https://doi.org/10.5281/zenodo.22047771).
 
+## Research evidence
+
+The [current Modelstamp preprint](https://arxiv.org/abs/2609.01781) evaluates 14
+controlled environment-drift scenarios, eight controlled trust-boundary
+scenarios, and verification scaling from 10 MiB to 1 GiB.
+
+Two experiments added to the repository after that preprint extend the evidence
+base: the
+[PyOD ordering baseline](https://github.com/AnaghaDhekne/modelstamp/blob/main/experiments/pyod_baseline/README.md)
+and the
+[controlled deserialization-boundary experiment](https://github.com/AnaghaDhekne/modelstamp/blob/main/experiments/deserialization_boundary/README.md).
+They test verification ordering and whether a pre-load rejection can stop before
+a harmless reconstruction side effect occurs. They do not claim that Modelstamp
+detects malicious models or makes pickle/joblib safe for untrusted artifacts.
+
 Start with the [quick start](quickstart.md), then review the
 [security boundary](security.md) before loading persisted Python objects.
 
