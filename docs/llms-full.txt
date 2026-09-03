@@ -158,3 +158,4 @@ cross-language model format, sandbox, or public-key signature system.
 - Source: https://github.com/AnaghaDhekne/modelstamp
 - Issues: https://github.com/AnaghaDhekne/modelstamp/issues
 - DOI: https://doi.org/10.5281/zenodo.22047771
+- Preprint: https://arxiv.org/abs/2609.01781 (arXiv:2609.01781)
