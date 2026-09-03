@@ -45,6 +45,25 @@ and may fail or behave differently. The
 therefore recommends preserving the training environment alongside the model.
 `modelstamp` packages that practice into a small API.
 
+## Research evidence
+
+The [current arXiv preprint](https://arxiv.org/abs/2609.01781) evaluates 14
+controlled environment-drift scenarios, eight controlled trust-boundary
+scenarios, and verification scaling from 10 MiB to 1 GiB.
+
+Subsequent repository experiments extend that evidence without changing the
+preprint's historical scope:
+
+- the [PyOD baseline](experiments/pyod_baseline/README.md) compares when
+  dependency-version evidence is evaluated relative to model reconstruction;
+- the [controlled deserialization-boundary experiment](experiments/deserialization_boundary/README.md)
+  tests whether a relevant pre-load rejection can stop before a harmless
+  reconstruction side effect occurs.
+
+These experiments evaluate verification ordering and its consequence. They do
+not claim that Modelstamp detects malicious models or makes pickle/joblib safe
+for untrusted artifacts.
+
 ## Why modelstamp?
 
 A normal `model.pkl` remembers the fitted object, but not the environment that
