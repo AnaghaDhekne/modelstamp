@@ -1,0 +1,4 @@
+# Save/control environment for the SaTML RQ3 baseline experiment.
+# The drift condition upgrades scikit-learn to 1.8.0 after artifact creation.
+scikit-learn==1.7.2
+pyod==3.6.5
