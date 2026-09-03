@@ -8,6 +8,9 @@ on:
       - "src/modelstamp/**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   boundary:
     runs-on: ubuntu-latest
