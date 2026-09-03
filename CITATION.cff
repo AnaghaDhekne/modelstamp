@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use Modelstamp in your research, please cite the software using the metadata below."
+message: "If you use Modelstamp in your research, please cite the software and the preferred preprint below."
 title: "Modelstamp: Integrity and environment verification for Python machine-learning artifacts"
 type: software
 authors:
@@ -25,3 +25,15 @@ abstract: >-
   artifact before deserialization and reports relevant dependency differences
   between the saved and current environments. Optional HMAC authentication can
   be used when publishers and verifiers share a protected secret.
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Dhekne
+      given-names: Anagha
+  title: "Modelstamp: Pre-Deserialization Verification of Machine-Learning Artifacts and Runtime Environment State"
+  year: 2026
+  url: "https://arxiv.org/abs/2609.01781"
+  identifiers:
+    - type: other
+      value: "arXiv:2609.01781"
+      description: "arXiv identifier"
