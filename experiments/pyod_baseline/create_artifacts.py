@@ -6,7 +6,6 @@ from sklearn.linear_model import LogisticRegression
 
 import modelstamp
 
-
 OUT = Path("experiments/pyod_baseline/artifacts")
 OUT.mkdir(parents=True, exist_ok=True)
 
