@@ -6,6 +6,32 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-09-03
+
+### Added
+
+- Expanded the CI-enforced dependency-drift research matrix to 14 controlled
+  cross-environment, relevant-dependency, and noise-control scenarios.
+- Added a reproducible PyOD baseline evaluating when dependency-version evidence
+  is surfaced relative to model reconstruction.
+- Added a controlled deserialization-boundary experiment testing whether a
+  relevant pre-load rejection can stop before a harmless reconstruction side
+  effect occurs.
+- Added the Modelstamp arXiv preprint as the preferred research citation and
+  documented the distinction between preprint evidence and subsequent
+  repository experiments.
+
+### Changed
+
+- Aligned the package summary and public documentation around
+  pre-deserialization integrity and selected runtime-environment verification.
+- Synchronized README and documentation research-evidence provenance.
+
+### Security
+
+- Clarified that the new ordering experiments do not establish malicious-model
+  detection and do not make pickle or joblib safe for untrusted artifacts.
+
 ## [0.1.4] - 2026-08-25
 
 ### Added
