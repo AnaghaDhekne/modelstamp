@@ -1,5 +1,5 @@
 site_name: modelstamp
-site_description: Integrity-checked persistence for Python machine-learning models
+site_description: Pre-deserialization integrity and environment verification for persisted Python machine-learning artifacts.
 site_url: https://anaghadhekne.github.io/modelstamp/
 repo_url: https://github.com/AnaghaDhekne/modelstamp
 repo_name: AnaghaDhekne/modelstamp

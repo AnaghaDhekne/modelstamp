@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use Modelstamp in your research, please cite the software and the preferred preprint below."
-title: "Modelstamp: Integrity and environment verification for Python machine-learning artifacts"
+title: "Modelstamp: Pre-deserialization integrity and environment verification for persisted Python machine-learning artifacts"
 type: software
 authors:
   - family-names: Dhekne
