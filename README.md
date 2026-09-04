@@ -30,6 +30,7 @@ print(restored, manifest.relevant_packages)
 [Documentation](https://anaghadhekne.github.io/modelstamp/) ·
 [Benchmarks](https://github.com/AnaghaDhekne/modelstamp/blob/main/BENCHMARKS.md) ·
 [Drift matrix](https://anaghadhekne.github.io/modelstamp/drift-benchmarks/) ·
+[Research & adoption](https://anaghadhekne.github.io/modelstamp/research-adoption/) ·
 [Preprint](https://arxiv.org/abs/2609.01781) ·
 [Security policy](https://github.com/AnaghaDhekne/modelstamp/security/policy)
 
