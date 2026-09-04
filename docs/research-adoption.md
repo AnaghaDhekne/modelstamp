@@ -1,4 +1,4 @@
-#indepentindependent Research and adoption
+# Research and adoption
 
 This page is the canonical public record of Modelstamp research outputs,
 independent use, integrations, citations, and community review. Entries are
@@ -130,6 +130,6 @@ verify. The page distinguishes:
   integration, paper, or talk with public evidence.
 
 Outreach messages, impressions, stars, clones, and anonymous download counts
-are not counted as indepent adoption. Entries are updated when their public
+are not counted as independent adoption. Entries are updated when their public
 status changes; superseded or corrected evidence retains a link to its
 provenance record.
