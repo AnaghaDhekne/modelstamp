@@ -1,4 +1,4 @@
-# Research and adoption
+#indepentindependent Research and adoption
 
 This page is the canonical public record of Modelstamp research outputs,
 independent use, integrations, citations, and community review. Entries are
