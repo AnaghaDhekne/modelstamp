@@ -51,6 +51,8 @@ detects malicious models or makes pickle/joblib safe for untrusted artifacts.
 
 Start with the [quick start](quickstart.md), then review the
 [security boundary](security.md) before loading persisted Python objects.
+The [Research & Adoption page](research-adoption.md) is the canonical record of
+papers, reproducible evidence, independent use, citations, and community review.
 
 ## Choose a guide
 
