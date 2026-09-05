@@ -28,6 +28,7 @@ nav:
       - Model risk case study: model-risk-case-study.md
       - Comparisons: comparisons.md
   - Runnable examples: examples.md
+  - Research use & citation: research-use.md
   - Research & adoption: research-adoption.md
   - Signing and key rotation: signing.md
   - Security: security.md
