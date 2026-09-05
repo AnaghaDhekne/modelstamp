@@ -36,6 +36,7 @@ nav:
   - Benchmarks:
       - Verification throughput: benchmarks.md
       - Dependency drift matrix: drift-benchmarks.md
+      - sklearn version-drift experiment: sklearn-version-drift.md
   - Release checklist: releasing.md
 
 strict: true
