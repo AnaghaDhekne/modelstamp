@@ -5,10 +5,8 @@ repo_url: https://github.com/AnaghaDhekne/modelstamp
 repo_name: AnaghaDhekne/modelstamp
 edit_uri: edit/main/docs/
 
-
 theme:
   name: mkdocs
-
 
 plugins:
   - search
@@ -19,7 +17,6 @@ plugins:
             docstring_style: google
             show_source: false
             members_order: source
-
 
 nav:
   - Home: index.md
@@ -41,6 +38,4 @@ nav:
       - Dependency drift matrix: drift-benchmarks.md
   - Release checklist: releasing.md
 
-
 strict: true
-
