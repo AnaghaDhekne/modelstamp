@@ -5,8 +5,10 @@ repo_url: https://github.com/AnaghaDhekne/modelstamp
 repo_name: AnaghaDhekne/modelstamp
 edit_uri: edit/main/docs/
 
+
 theme:
   name: mkdocs
+
 
 plugins:
   - search
@@ -18,6 +20,7 @@ plugins:
             show_source: false
             members_order: source
 
+
 nav:
   - Home: index.md
   - Quick start: quickstart.md
@@ -28,6 +31,7 @@ nav:
       - Model risk case study: model-risk-case-study.md
       - Comparisons: comparisons.md
   - Runnable examples: examples.md
+  - Research use & citation: research-use.md
   - Research & adoption: research-adoption.md
   - Signing and key rotation: signing.md
   - Security: security.md
@@ -37,4 +41,6 @@ nav:
       - Dependency drift matrix: drift-benchmarks.md
   - Release checklist: releasing.md
 
+
 strict: true
+
