@@ -1,0 +1,5 @@
+# Python 3.11 changed environment. Only scikit-learn differs from save.
+scikit-learn==1.6.1
+numpy==1.26.4
+scipy==1.13.1
+joblib==1.4.2
