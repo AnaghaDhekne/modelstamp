@@ -27,10 +27,13 @@ def _python(environment: Path) -> Path:
 def _run(command: List[str], *, env: Dict[str, str] | None = None) -> str:
     print("+", " ".join(command), flush=True)
     completed = subprocess.run(
-        command, cwd=ROOT, env=env, check=True, text=True, capture_output=True
+        command, cwd=ROOT, env=env, check=False, text=True, capture_output=True
     )
     if completed.stdout:
         print(completed.stdout, end="")
+    if completed.stderr:
+        print(completed.stderr, end="", file=sys.stderr)
+    completed.check_returncode()
     return completed.stdout
 
 
