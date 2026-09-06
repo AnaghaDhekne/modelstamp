@@ -28,6 +28,9 @@ mkdocs build --strict
 - Add regression tests for bug fixes and tests for new behavior.
 - Preserve compatibility with Python 3.8 through 3.13.
 - Update the README or changelog when public behavior changes.
+- Add or update an [architecture decision record](docs/architecture-decisions.md)
+  when a change affects a public guarantee, trust boundary, persisted format,
+  compatibility policy, or supported workflow.
 - Never include real model artifacts, credentials, or private training data.
 
 All changes to `main` go through a pull request. Required CI and CodeQL checks
