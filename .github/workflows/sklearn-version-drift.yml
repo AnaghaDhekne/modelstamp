@@ -1,0 +1,46 @@
+name: Definitive sklearn version drift
+
+on:
+  pull_request:
+    paths:
+      - "experiments/sklearn_version_drift/**"
+      - ".github/workflows/sklearn-version-drift.yml"
+      - "src/modelstamp/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sklearn-version-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            experiments/sklearn_version_drift/requirements-save.txt
+            experiments/sklearn_version_drift/requirements-drift.txt
+
+      - name: Run pinned experiment
+        run: |
+          python experiments/sklearn_version_drift/run_experiment.py
+
+      - name: Publish observed summary
+        if: always()
+        run: |
+          echo '## Definitive sklearn version-drift experiment' >> "${GITHUB_STEP_SUMMARY}"
+          echo '```json' >> "${GITHUB_STEP_SUMMARY}"
+          test ! -f experiments/sklearn_version_drift/output/summary.json || \
+            cat experiments/sklearn_version_drift/output/summary.json >> "${GITHUB_STEP_SUMMARY}"
+          echo '```' >> "${GITHUB_STEP_SUMMARY}"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sklearn-version-drift-results
+          path: experiments/sklearn_version_drift/output/
+          if-no-files-found: error
+          retention-days: 90
