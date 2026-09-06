@@ -56,6 +56,7 @@ independent adoption.
 | Definitive sklearn version-drift experiment | Baseline reconstruction and warning behavior compared with Modelstamp's non-deserializing check and strict pre-load rejection | [Protocol and reproduction](sklearn-version-drift.md) · [Experiment source](https://github.com/AnaghaDhekne/modelstamp/tree/main/experiments/sklearn_version_drift) |
 | Unified drift and trust-boundary evidence | Fourteen pinned dependency-drift cases and eight integrity/authentication cases with machine-readable observations | [Protocol and reproduction](reproducible-evidence.md) · [Experiment source](https://github.com/AnaghaDhekne/modelstamp/tree/main/experiments/reproducible_evidence) |
 | PyOD baseline | The point at which dependency-version evidence is evaluated relative to model reconstruction | [Experiment](https://github.com/AnaghaDhekne/modelstamp/tree/main/experiments/pyod_baseline) |
+| State-of-the-field comparison | Official-source claims about adjacent persistence, registry, versioning, and signing tools | [Evidence ledger](https://github.com/AnaghaDhekne/modelstamp/tree/main/research/state_of_field) |
 | Deserialization-boundary experiment | Whether a relevant pre-load rejection occurs before a controlled reconstruction side effect | [Experiment](https://github.com/AnaghaDhekne/modelstamp/tree/main/experiments/deserialization_boundary) · [correction record](https://github.com/AnaghaDhekne/modelstamp/blob/main/research/satml_2027/rq4_correction_record.md) |
 
 These evaluations characterize Modelstamp as a pre-deserialization integrity
