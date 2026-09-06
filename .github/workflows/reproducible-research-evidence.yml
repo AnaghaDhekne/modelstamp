@@ -1,0 +1,43 @@
+name: Reproducible research evidence
+
+on:
+  push:
+    paths:
+      - ".github/workflows/reproducible-research-evidence.yml"
+      - "benchmarks/drift_matrix_case.py"
+      - "examples/trust_boundary_matrix.py"
+      - "experiments/reproducible_evidence/**"
+      - "src/**"
+  pull_request:
+    paths:
+      - ".github/workflows/reproducible-research-evidence.yml"
+      - "benchmarks/drift_matrix_case.py"
+      - "examples/trust_boundary_matrix.py"
+      - "experiments/reproducible_evidence/**"
+      - "src/**"
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Run complete evidence protocol
+        run: python experiments/reproducible_evidence/run_evidence.py
+      - name: Publish observed summary
+        if: always()
+        run: test ! -f experiments/reproducible_evidence/output/SUMMARY.md || cat experiments/reproducible_evidence/output/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload evidence bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modelstamp-reproducible-evidence
+          path: experiments/reproducible_evidence/output/
+          if-no-files-found: error
