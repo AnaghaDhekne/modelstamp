@@ -30,6 +30,14 @@ nav:
   - Runnable examples: examples.md
   - Research use & citation: research-use.md
   - Research & adoption: research-adoption.md
+  - Architecture decisions:
+      - Decision log: architecture-decisions.md
+      - Verify before reconstruction: decisions/0001-pre-deserialization-verification.md
+      - Sidecar manifest: decisions/0002-sidecar-manifest.md
+      - Dependency relevance: decisions/0003-dependency-relevance.md
+      - Integrity and authenticity: decisions/0004-integrity-and-authenticity.md
+      - Compatibility, not replication: decisions/0005-compatibility-not-replication.md
+      - ADR template: decisions/0000-template.md
   - Signing and key rotation: signing.md
   - Security: security.md
   - API reference: api.md
