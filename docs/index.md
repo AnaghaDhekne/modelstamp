@@ -63,6 +63,8 @@ papers, reproducible evidence, independent use, citations, and community review.
 - Examine the runnable [model-risk trust-boundary case study](model-risk-case-study.md).
 - Understand [when to use Modelstamp](comparisons.md) with lock files,
   registries, `skops.io`, or ONNX.
+- Review the [architecture decisions](architecture-decisions.md) behind the
+  verification boundary, manifest, dependency policy, and trust model.
 - Run the repository's [complete examples](examples.md).
 
 Releases are published from protected `v*` tags using PyPI Trusted Publishing.
