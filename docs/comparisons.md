@@ -1,58 +1,78 @@
-# When to use Modelstamp
+# State of the field and Modelstamp's scope
 
 Modelstamp is a focused verification layer for persisted Python ML artifacts.
-It complements environment managers, registries, and safer serialization
-formats rather than replacing them.
+It complements environment managers, model registries, safer serialization
+formats, and public signing systems rather than replacing them.
 
-## Modelstamp and requirements files
+This comparison was reviewed on **2026-09-06** from official project
+documentation. “Not documented” means only that the reviewed source does not
+describe the capability; it is not proof of absence. The machine-readable
+[claim ledger](https://github.com/AnaghaDhekne/modelstamp/tree/main/research/state_of_field)
+records the sources and review method.
 
-`requirements.txt`, lock files, and environment specifications describe an
-environment that can be installed. Modelstamp records the runtime associated
-with one specific artifact, connects it to the artifact digest, and compares it
-at verification or loading time.
+## Factual comparison
 
-Use both when you need reproducible installation and artifact-level evidence.
+| Tool or approach | Primary problem documented by the project | Overlap with Modelstamp | Material difference |
+|---|---|---|---|
+| scikit-learn pickle/joblib guidance | Persist fitted Python objects and record enough surrounding information to reproduce results | Python-object persistence and dependency-version awareness | Cross-version loading is unsupported; the guidance does not define an artifact-bound, non-deserializing policy gate. [Source](https://scikit-learn.org/stable/model_persistence.html) |
+| joblib | Efficient persistence and reconstruction of Python objects, including NumPy data | Modelstamp can retain joblib artifacts | `joblib.load` relies on pickle and can execute arbitrary code; artifact integrity and dependency policy are outside the reviewed persistence API. [Source](https://joblib.readthedocs.io/en/stable/generated/joblib.load.html) |
+| skops.io | More secure sklearn-oriented persistence without pickle, with inspection of unknown types before construction | Pre-load inspection and concern for persisted-model trust | It uses a different, deliberately narrower format, cannot persist arbitrary Python code, and cannot remove sklearn's cross-version compatibility limits. [Source](https://skops.readthedocs.io/en/stable/persistence.html) |
+| ONNX | Portable serialized computation graphs for framework-independent inference | Reduces dependence on the original training environment | It represents supported operators and inference behavior, not the original arbitrary fitted Python object. [Source](https://onnx.ai/onnx/intro/concepts.html) |
+| PyOD persistence | A versioned joblib envelope with dependency drift warnings, strict rejection, and limited sklearn compatibility repair | Closest overlap: persisted object plus recorded dependency versions and strict policy | Its documented metadata path unpickles the model; Modelstamp's tested distinction is a separate check path that does not reconstruct it. [Source](https://pyod.readthedocs.io/en/latest/model_persistence.html) |
+| MLflow Models and Model Registry | Package models with dependencies; manage versions, aliases, tags, source runs, and deployment organization | Environment metadata and model lifecycle | It is a broader packaging/tracking system. The reviewed docs do not specify Modelstamp's file-local digest-plus-runtime pre-load check. [Dependencies](https://mlflow.org/docs/latest/ml/model/dependencies/) · [Registry](https://mlflow.org/docs/latest/ml/model-registry/workflow/) |
+| DVC | Git-oriented versioning of data and model artifacts, pipelines, experiments, and remote storage | Artifact history, retrieval, and reproducible workflow context | It treats model files as versioned artifacts rather than defining serializer-aware runtime compatibility before model reconstruction. [Source](https://dvc.org/doc/user-guide) |
+| Sigstore | Identity-based signing and verification of software artifacts with transparency logging | Strong artifact authenticity and integrity | It does not decide which Python ML dependencies are relevant or orchestrate a model loader. Modelstamp's current shared-secret HMAC is not a substitute for Sigstore's public-verification model. [Source](https://docs.sigstore.dev/about/overview/) |
 
-## Modelstamp and model registries
+## The narrower Modelstamp problem
 
-Registries such as MLflow manage model versions, lifecycle stages, metadata,
-and deployment workflows. Modelstamp is intentionally smaller: it works with
-ordinary files and adds local integrity and runtime checks.
+Modelstamp keeps an existing pickle or joblib artifact, creates a sidecar that
+binds a digest to selected runtime evidence, and exposes verification before
+deserialization. Its strict load path can reject a known integrity or dependency
+condition before invoking the serializer.
 
-Use Modelstamp when a registry would be excessive, or use it as an additional
-verification step when artifacts leave a registry.
+That combination matters only when retaining the Python object is a requirement.
+If the model can be represented by ONNX, or if skops supports the full object
+graph, those formats can reduce the loading risk rather than merely gate it.
+Modelstamp does **not** make pickle/joblib safe for untrusted input.
 
-## Modelstamp and skops.io or ONNX
+## Could this have been an upstream contribution?
 
-Modelstamp preserves pickle and joblib compatibility. It does not reduce their
-ability to execute code during loading. `skops.io` and ONNX provide different
-serialization and portability tradeoffs and may be better when their supported
-model surface fits the application.
+The following is **maintainer analysis**, not a claim made by the compared
+projects.
 
-Use Modelstamp when retaining the existing Python object is necessary. Prefer
-a format with a narrower execution surface when untrusted distribution is the
-primary requirement.
+| Possible upstream home | What could plausibly be contributed | Why that alone may not satisfy Modelstamp's scope |
+|---|---|---|
+| joblib or scikit-learn | Optional environment metadata, warnings, or a companion verification API | A generic serializer or estimator library would need to adopt model-relevance policy, sidecar lifecycle, signing semantics, and support responsibilities beyond its current persistence guidance. Modelstamp also targets third-party estimator ecosystems. |
+| skops | Runtime metadata and stricter cross-version checks | This would be valuable for `.skops` files, but would not preserve existing pickle/joblib artifacts or arbitrary fitted Python objects. Integration remains complementary. |
+| PyOD | A header-only inspection API and artifact authentication | PyOD is the closest technical home for the tested PyOD detector case. Modelstamp additionally aims to be estimator-library-neutral and file-local. The existing controlled experiment should remain the evidence for the ordering distinction. |
+| MLflow | A model flavor, plugin, or deployment hook that invokes Modelstamp verification | This could provide a useful integration, but users of standalone files would inherit an unnecessary tracking/registry stack if it were the only implementation. |
+| DVC | A pipeline stage or check that runs Modelstamp | DVC can orchestrate and version the evidence, but the model-relevance and serializer-boundary logic would still need a dedicated component. |
+| ONNX | Additional metadata conventions or validation | It would apply after accepting graph conversion and would not cover the requirement to retain arbitrary Python model state. |
+| Sigstore | Model artifact signing conventions | Sigstore can strengthen publisher identity and public verification, but a separate layer must still capture dependency evidence and decide whether to invoke a Python loader. |
 
-## Modelstamp and cryptographic signatures
+The practical conclusion is not that upstream contribution was impossible.
+Several integrations are sensible. A separate small package was justified by
+the intersection of three constraints: ordinary file workflows, multiple
+Python estimator ecosystems, and a policy decision before deserialization.
 
-Modelstamp supports HMAC-SHA-256 authentication with a shared secret. It is
-appropriate when trusted producers and verifiers can safely share that secret.
-It is not appropriate for public verification because every verifier could
-also forge a valid manifest. Public distribution requires an asymmetric system
-such as Ed25519 or Sigstore, which Modelstamp does not currently provide.
+## Choosing a tool
 
-## Good fits
+- Choose skops.io or ONNX when changing format is acceptable and their supported
+  model surface fits.
+- Choose MLflow or DVC when lifecycle, lineage, experiment management, or remote
+  artifact organization is the main requirement.
+- Choose Sigstore when public publisher identity and independently verifiable
+  signatures are required.
+- Add Modelstamp when a trusted pickle/joblib workflow must retain its Python
+  object and needs file-local integrity and relevant dependency checks before
+  loading.
+- Combine them when requirements cross these boundaries; they solve different
+  layers of the problem.
 
-- Persisted scikit-learn or Python models stored as files.
-- Teams that need integrity checks before deserialization.
-- Deployment gates that should detect dependency drift.
-- Small projects that do not need a full registry.
-- Internal artifact exchange using a protected shared HMAC key.
+## Claim boundaries
 
-## Poor fits
-
-- Loading models from untrusted sources.
-- Public verification with publishable verification keys.
-- Cross-language inference where Python object persistence is unsuitable.
-- Complete experiment tracking, lineage, or registry lifecycle management.
-
+Modelstamp does not detect malware, guarantee semantic compatibility when
+versions match, capture a complete execution environment, prevent replay by
+itself, provide public-key identity, or replace experiment tracking and model
+registries. The [reproducible research evidence](reproducible-evidence.md)
+documents the narrower tested claims.
