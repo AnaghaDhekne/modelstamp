@@ -27,7 +27,9 @@ expected set. The CI-enforced matrix currently contains 14 scenarios spanning re
 
 All other pinned packages in a row were held constant. The sklearn cases held
 NumPy 1.26.4, SciPy 1.13.1, and (except for the joblib case) joblib 1.4.2
-constant. The XGBoost and LightGBM cases held NumPy, SciPy, and joblib constant.
+constant. The XGBoost and LightGBM cases held scikit-learn, NumPy, SciPy, and
+joblib constant except where the LightGBM wrapper case intentionally changed
+scikit-learn.
 
 ## What the result establishes
 
