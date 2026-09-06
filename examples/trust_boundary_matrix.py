@@ -10,6 +10,7 @@ test Modelstamp's controls without requiring a machine-learning framework.
 
 from __future__ import annotations
 
+import argparse
 import json
 import shutil
 import tempfile
@@ -212,6 +213,13 @@ def run_matrix(root: Path) -> list[Result]:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="Optional path for a machine-readable JSON result.",
+    )
+    args = parser.parse_args()
     with tempfile.TemporaryDirectory(prefix="modelstamp-trust-") as directory:
         results = run_matrix(Path(directory))
 
@@ -222,6 +230,15 @@ def main() -> None:
         print(f"{index}. [{status}] {result.scenario}")
         print(f"   expected: {result.expected}")
         print(f"   observed: {result.observed}")
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "protocol_version": 1,
+            "scenario_count": len(results),
+            "passed": all(result.passed for result in results),
+            "results": [result.__dict__ for result in results],
+        }
+        args.output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":
