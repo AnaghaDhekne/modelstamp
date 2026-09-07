@@ -31,6 +31,25 @@ repeat use. Counts include only publicly verifiable evidence reviewed on the
 date above. They are evidence counts, not estimates of total users or conversion
 rates.
 
+### Anonymous distribution activity
+
+[PyPI Stats](https://pypistats.org/packages/modelstamp) reported the following
+Modelstamp download activity when retrieved on **7 September 2026**:
+
+| Window | Downloads |
+| --- | ---: |
+| Last day | 14 |
+| Last week | 142 |
+| Last month | 689 |
+
+These counts are a top-of-funnel reach indicator, not verified installs or
+users. They can include automated CI jobs, mirrors, scanners, repeated downloads
+by one user, and downloads that never led to installation or use. The windows
+overlap and must not be summed. Because the source updates daily, every future
+change must record its retrieval date rather than silently replacing the values.
+
+### Verified adoption stages
+
 | Stage | Qualification rule | Verified count | Current evidence |
 | --- | --- | ---: | --- |
 | Contacts | A directed, attributable request for review, listing, testing, or integration with a durable public record | 2 | pyOpenSci inquiry #343; Awesome MLOps PR #253 |
@@ -46,10 +65,11 @@ the preceding stages. Rejections and negative technical findings still count at
 the appropriate reply or feedback stage; the funnel measures engagement, not
 only favorable outcomes.
 
-Anonymous PyPI downloads, repository views, stars, impressions, and maintainer
-activity are excluded because they cannot establish who used the package or
-what happened. The maintainer-created feedback issue is an open invitation, not
-a directed contact, external reply, or adoption event.
+Anonymous package downloads are reported separately above but excluded from the
+verified stages because they cannot establish who used the package or what
+happened. Repository views, stars, impressions, and maintainer activity are also
+excluded. The maintainer-created feedback issue is an open invitation, not a
+directed contact, external reply, or adoption event.
 
 ### Funnel record ledger
 
