@@ -18,6 +18,14 @@ only alternatives.
 - artifact and pipeline versioning: DVC
 - public artifact authenticity: Sigstore
 
+The ledger evaluates Sigstore's general software-artifact signing boundary. The
+SaTML manuscript separately discusses OpenSSF Model Signing (OMS), a
+model-specific signing specification whose signature file follows the Sigstore
+Bundle Format and supports multiple signing options, including Sigstore. The two
+names are related but not interchangeable, and the Sigstore ledger entry should
+not be read as an evaluation of OMS. See the official
+[OpenSSF OMS overview](https://openssf.org/blog/2025/06/25/an-introduction-to-the-openssf-model-signing-oms-specification/).
+
 These classes were selected because each overlaps at least one Modelstamp
 responsibility or trust-boundary decision. General environment managers are
 represented by scikit-learn's persistence guidance rather than exhaustively
@@ -67,4 +75,3 @@ review the rendered comparison.
 5. Run the validator and `mkdocs build --strict`.
 6. Record any experimentally testable distinction in a separate, pinned
    experiment before making a performance or ordering claim.
-

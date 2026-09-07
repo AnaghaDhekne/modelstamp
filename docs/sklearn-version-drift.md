@@ -9,6 +9,12 @@ The complete protocol, pinned requirements, executable scripts, acceptance
 criteria, and limitations are in
 [`experiments/sklearn_version_drift`](https://github.com/AnaghaDhekne/modelstamp/tree/main/experiments/sklearn_version_drift).
 
+The 1.5.2 to 1.6.1 pair intentionally reuses RQ1's `sklearn-minor` case. This
+standalone experiment is not an additional drift scenario or finding: it adds a
+same-version control, direct joblib baseline, reconstruction and warning
+instrumentation, fixed prediction probes, and explicit pre-load ordering checks
+for external reproduction.
+
 ## Protocol at a glance
 
 1. Fit `LogisticRegression(max_iter=500, random_state=0)` on the Iris dataset.

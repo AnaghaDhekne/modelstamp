@@ -14,6 +14,15 @@ This is an ordering experiment. It is not a population-level comparison of
 drift-detection accuracy, and it does not claim that every version change alters
 predictions or is semantically incompatible.
 
+## Relationship to RQ1
+
+The 1.5.2 to 1.6.1 pair intentionally matches the `sklearn-minor` case in the
+14-scenario RQ1 matrix. This standalone protocol is not a new drift scenario or
+an additional finding. It adds a same-version control, an ordinary joblib
+baseline, reconstruction and warning instrumentation, fixed prediction probes,
+and an explicit comparison with Modelstamp's pre-load check and strict rejection
+for external reproduction and review.
+
 ## Predeclared environments
 
 All conditions use Python 3.11, NumPy 1.26.4, SciPy 1.13.1, and joblib 1.4.2.

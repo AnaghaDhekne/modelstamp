@@ -34,6 +34,7 @@ jobs:
       - run: python -m pip install ".[dev]"
       - run: ruff format --check .
       - run: ruff check .
+      - run: python research/validate_artifact_contents.py
       - run: python -m build
       - run: python -m twine check dist/*
       - run: mkdocs build --strict
