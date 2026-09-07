@@ -8,6 +8,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Added systematic Linux, Windows, and macOS CI coverage, including
+  lower/upper Python-version checks and installed-wheel smoke tests on every
+  supported operating-system family.
 - Added regression evidence that deserialization consumes the same open file
   whose bytes were verified, with a separate supplementary validation record.
 - Added a pinned PyOD baseline reproduction and symmetric loader tracing for the

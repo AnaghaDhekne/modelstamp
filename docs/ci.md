@@ -53,3 +53,18 @@ key identifiers as described in the [signing guide](signing.md).
 It does not establish that a pickle payload is safe to execute. CI should only
 load artifacts produced by trusted workflows.
 
+## Project compatibility matrix
+
+The repository's required test workflow separates interpreter coverage from
+distribution and operating-system coverage:
+
+| Check | Linux | Windows | macOS |
+| --- | --- | --- | --- |
+| Unit tests | Python 3.8--3.13 | Python 3.8, 3.12, and 3.13 | Python 3.8 and 3.13 |
+| Built-wheel import and CLI smoke test | Python 3.12 | Python 3.12 | Python 3.12 |
+
+Linux exercises every Python version declared in `pyproject.toml`. Windows and
+macOS exercise the declared lower and upper bounds; the established Windows
+3.12 job is retained as a stable required check. The separate wheel jobs build,
+install, import, and invoke the CLI from outside the source checkout, so a
+source-tree import cannot hide a broken distribution.
