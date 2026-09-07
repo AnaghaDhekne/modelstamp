@@ -25,6 +25,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   and compatibility versus environment replication.
 - Added `ARTIFACT_CONTENTS.md`, a claim-to-file gate for the anonymized research
   artifact, plus an offline path validator enforced in CI.
+- Added a publicly auditable research-adoption funnel covering anonymous PyPI
+  download activity, contacts, replies, external installs or trials, technical
+  feedback, and repeat use.
 
 ### Changed
 
