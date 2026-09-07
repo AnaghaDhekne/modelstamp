@@ -24,6 +24,46 @@ evaluation is not mistaken for independent adoption.
 the review date. It is not a claim about private use, package downloads, or
 activity that cannot be independently checked.
 
+## Research-adoption funnel
+
+This funnel tracks observable progress from a specific outreach record to
+repeat use. Counts include only publicly verifiable evidence reviewed on the
+date above. They are evidence counts, not estimates of total users or conversion
+rates.
+
+| Stage | Qualification rule | Verified count | Current evidence |
+| --- | --- | ---: | --- |
+| Contacts | A directed, attributable request for review, listing, testing, or integration with a durable public record | 2 | pyOpenSci inquiry #343; Awesome MLOps PR #253 |
+| Replies | A substantive response from someone outside the Modelstamp project to a counted contact | 0 | None verified |
+| Installs or trials | A public report or reproducible workflow showing that an external person installed or ran Modelstamp | 0 | None verified |
+| Technical feedback | External, Modelstamp-specific findings, questions, issues, or patches resulting from a trial | 0 | None verified |
+| Repeat use | Evidence that the same external user or project used Modelstamp in a later run, release, study, or workflow | 0 | None verified |
+
+The stages are progressive for a single adoption record: a reply does not imply
+an install, and an install does not imply successful or repeated use. A record
+can therefore appear at its highest verified stage only after links establish
+the preceding stages. Rejections and negative technical findings still count at
+the appropriate reply or feedback stage; the funnel measures engagement, not
+only favorable outcomes.
+
+Anonymous PyPI downloads, repository views, stars, impressions, and maintainer
+activity are excluded because they cannot establish who used the package or
+what happened. The maintainer-created feedback issue is an open invitation, not
+a directed contact, external reply, or adoption event.
+
+### Funnel record ledger
+
+| Record | Contact | Reply | Install or trial | Feedback | Repeat use |
+| --- | --- | --- | --- | --- | --- |
+| [pyOpenSci pre-submission inquiry #343](https://github.com/pyOpenSci/software-submission/issues/343) | Verified | None recorded | None recorded | None recorded | None recorded |
+| [Awesome MLOps listing PR #253](https://github.com/kelvins/awesome-mlops/pull/253) | Verified | None recorded | None recorded | None recorded | None recorded |
+
+When evidence changes, update both the summary count and this ledger in the same
+commit. Add the dated public link, identify whether the actor is independent of
+the project, and advance only the stages supported by that source. Preserve
+closed, rejected, or superseded records instead of deleting them so conversion
+and non-conversion outcomes remain auditable.
+
 ## Papers and software records
 
 ### Modelstamp preprint
