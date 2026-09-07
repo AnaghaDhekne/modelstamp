@@ -10,6 +10,13 @@ describe the capability; it is not proof of absence. The machine-readable
 [claim ledger](https://github.com/AnaghaDhekne/modelstamp/tree/main/research/state_of_field)
 records the sources and review method.
 
+This page evaluates Sigstore as a general software-artifact signing system. The
+SaTML manuscript separately discusses OpenSSF Model Signing (OMS), a
+model-specific specification that uses the Sigstore Bundle Format and can use
+Sigstore as one of several signing options. OMS and Sigstore are related, not
+synonyms; the Sigstore row below is not an evaluation of OMS. See the official
+[OpenSSF OMS overview](https://openssf.org/blog/2025/06/25/an-introduction-to-the-openssf-model-signing-oms-specification/).
+
 ## Factual comparison
 
 | Tool or approach | Primary problem documented by the project | Overlap with Modelstamp | Material difference |
