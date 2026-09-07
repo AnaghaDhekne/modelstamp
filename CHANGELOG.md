@@ -6,11 +6,43 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Added regression evidence that deserialization consumes the same open file
+  whose bytes were verified, with a separate supplementary validation record.
+- Added a pinned PyOD baseline reproduction and symmetric loader tracing for the
+  RQ3 pre-deserialization ordering comparison.
+- Added a public research-adoption page and a research-use guide covering
+  installation, examples, citation, archival metadata, and claim boundaries.
+- Added a standalone scikit-learn 1.5.2 to 1.6.1 version-drift experiment with
+  same-version control, direct joblib baseline, and pre-load ordering checks.
+- Added a rerunnable research-evidence bundle for the 14 drift scenarios and
+  eight trust-boundary scenarios, including pinned inputs and CI retention.
+- Added a source-auditable state-of-the-field evidence ledger and offline
+  validator.
+- Added architecture decision records for pre-deserialization verification,
+  manifest design, dependency relevance, integrity and authenticity boundaries,
+  and compatibility versus environment replication.
+- Added `ARTIFACT_CONTENTS.md`, a claim-to-file gate for the anonymized research
+  artifact, plus an offline path validator enforced in CI.
+
 ### Changed
 
 - Standardized the project framing across `CITATION.cff` and the documentation
   site metadata as pre-deserialization integrity and environment verification
   for persisted Python machine-learning artifacts.
+- Made RQ3 instrumentation symmetric by tracing serialization-loader calls for
+  both Modelstamp and PyOD paths.
+- Clarified that the standalone scikit-learn drift experiment intentionally
+  elaborates an existing RQ1 version pair rather than adding a new finding.
+- Distinguished the generic Sigstore comparison from the manuscript's separate
+  treatment of OpenSSF Model Signing (OMS).
+
+### Fixed
+
+- Corrected and revalidated the RQ4 deserialization-boundary experiment after
+  documenting the invalid load argument, wrong manifest path, and empty inferred
+  relevance set in the original execution.
 
 ## [0.1.5] - 2026-09-03
 
