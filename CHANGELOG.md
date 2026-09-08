@@ -8,6 +8,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Added a dated JOSS 2026 scope and readiness baseline covering the official
+  public-development, research-impact, design-thinking, open-practice, and AI-use
+  gates; repository evidence; the post-20-February-2027 calendar floor; and
+  explicit unresolved submission blockers.
 - Added process-level concurrent save/read regressions, arbitrary-manifest-byte
   fuzzing, and adversarial manifest filename traversal tests across the
   supported CI platform matrix.
