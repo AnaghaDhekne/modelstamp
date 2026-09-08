@@ -49,6 +49,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Replaced the racy separate `exists()`/`is_file()` save-path check with one
+  `stat()` observation, preventing concurrent writers from misclassifying a
+  temporarily moved regular artifact as a directory.
 - Corrected and revalidated the RQ4 deserialization-boundary experiment after
   documenting the invalid load argument, wrong manifest path, and empty inferred
   relevance set in the original execution.
