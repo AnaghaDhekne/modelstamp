@@ -8,6 +8,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Added process-level concurrent save/read regressions, arbitrary-manifest-byte
+  fuzzing, and adversarial manifest filename traversal tests across the
+  supported CI platform matrix.
 - Added systematic Linux, Windows, and macOS CI coverage, including
   lower/upper Python-version checks and installed-wheel smoke tests on every
   supported operating-system family.
@@ -46,6 +49,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Fixed process-level save races by replacing the separate
+  `exists()`/`is_file()` path check with one `stat()` observation and by
+  removing a pre-lock read of the Windows byte-range lock file.
 - Corrected and revalidated the RQ4 deserialization-boundary experiment after
   documenting the invalid load argument, wrong manifest path, and empty inferred
   relevance set in the original execution.

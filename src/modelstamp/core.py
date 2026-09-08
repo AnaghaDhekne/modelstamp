@@ -7,6 +7,7 @@ import hmac
 import json
 import os
 import pickle
+import stat
 import tempfile
 import threading
 import warnings
@@ -212,10 +213,6 @@ def _artifact_lock(model_path: Path) -> Iterator[None]:
                 import msvcrt
 
                 stream.seek(0)
-                if not stream.read(1):
-                    stream.write(b"\0")
-                    stream.flush()
-                stream.seek(0)
                 msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
                 try:
                     yield
@@ -295,6 +292,16 @@ def _stage_text(path: Path, content: str) -> Path:
         raise
 
 
+def _reject_non_regular_existing_path(path: Path) -> None:
+    """Reject directories and special files without an exists/is_file race."""
+    try:
+        mode = path.stat().st_mode
+    except FileNotFoundError:
+        return
+    if not stat.S_ISREG(mode):
+        raise IsADirectoryError(f"artifact path is not a regular file: {path}")
+
+
 def _commit_artifact_pair(
     staged_model: Path,
     model_path: Path,
@@ -367,8 +374,7 @@ def save(
 
     model_path = Path(path)
     model_path.parent.mkdir(parents=True, exist_ok=True)
-    if model_path.exists() and not model_path.is_file():
-        raise IsADirectoryError(f"artifact path is not a regular file: {model_path}")
+    _reject_non_regular_existing_path(model_path)
     resolved = _resolve_save_backend(backend)
     descriptor, temporary_name = tempfile.mkstemp(
         prefix=f".{model_path.name}.", suffix=".tmp", dir=str(model_path.parent)
@@ -399,10 +405,7 @@ def save(
         manifest_path = _manifest_path(model_path)
         staged_manifest = _stage_text(manifest_path, manifest.to_json())
         with _artifact_lock(model_path):
-            if model_path.exists() and not model_path.is_file():
-                raise IsADirectoryError(
-                    f"artifact path is not a regular file: {model_path}"
-                )
+            _reject_non_regular_existing_path(model_path)
             _commit_artifact_pair(
                 temporary_path,
                 model_path,

@@ -16,5 +16,18 @@ asymmetric signatures such as Ed25519 or Sigstore.
 - Use `skops.io` or ONNX when their reduced execution surface fits the model.
 - Use `inspect()`, `check()`, and `verify()` when deserialization is unnecessary.
 
+## Resilience-test boundary
+
+The test suite exercises simultaneous saves across independent processes,
+verification and loading while another process replaces an artifact pair,
+arbitrary manifest bytes, and manifest filenames that attempt directory
+traversal. These tests run on Linux, Windows, and macOS through the supported
+CI matrix.
+
+They establish fail-closed parsing and cooperative local-process locking under
+the tested conditions. They do not claim protection from a privileged attacker
+who can ignore locks, replace files or keys, or alter the running process. Use
+filesystem permissions and an external trust system for those boundaries.
+
 Report suspected vulnerabilities privately according to the repository's
 [security policy](https://github.com/AnaghaDhekne/modelstamp/security/policy).
