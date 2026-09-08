@@ -8,6 +8,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Added process-level concurrent save/read regressions, arbitrary-manifest-byte
+  fuzzing, and adversarial manifest filename traversal tests across the
+  supported CI platform matrix.
 - Added systematic Linux, Windows, and macOS CI coverage, including
   lower/upper Python-version checks and installed-wheel smoke tests on every
   supported operating-system family.
