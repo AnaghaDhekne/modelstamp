@@ -7,6 +7,11 @@ evaluation is not mistaken for independent adoption.
 
 **Last evidence review:** 4 September 2026
 
+JOSS planning is tracked separately in the dated
+[2026 scope and readiness baseline](https://github.com/AnaghaDhekne/modelstamp/blob/main/research/joss_2026_scope_baseline.md).
+That record treats the six-month public-development threshold as a floor and
+does not count anonymous downloads as research adoption.
+
 ## Evidence status
 
 | Evidence type | Publicly verified status |
