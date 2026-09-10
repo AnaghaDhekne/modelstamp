@@ -41,6 +41,185 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Use the Zenodo v0.1.5 version DOI in release-specific citation metadata and
+  examples while retaining the concept DOI for evergreen project links.
+- Standardized the project framing across `CITATION.cff` and the documentation
+  site metadata as pre-deserialization integrity and environment verification
+  for persisted Python machine-learning artifacts.
+- Made RQ3 instrumentation symmetric by tracing serialization-loader calls for
+  both Modelstamp and PyOD paths.
+- Clarified that the standalone scikit-learn drift experiment intentionally
+  elaborates an existing RQ1 version pair rather than adding a new finding.
+- Distinguished the generic Sigstore comparison from the manuscript's separate
+  treatment of OpenSSF Model Signing (OMS).
+
+### Fixed
+
+- Fixed process-level save races by replacing the separate
+  `exists()`/`is_file()` path check with one `stat()` observation and by
+  removing a pre-lock read of the Windows byte-range lock file.
+- Corrected and revalidated the RQ4 deserialization-boundary experiment after
+  documenting the invalid load argument, wrong manifest path, and empty inferred
+  relevance set in the original execution.
+
+## [0.1.5] - 2026-09-03
+
+### Added
+
+- Expanded the CI-enforced dependency-drift research matrix to 14 controlled
+  cross-environment, relevant-dependency, and noise-control scenarios.
+- Added a reproducible PyOD baseline evaluating when dependency-version evidence
+  is surfaced relative to model reconstruction.
+- Added a controlled deserialization-boundary experiment testing whether a
+  relevant pre-load rejection can stop before a harmless reconstruction side
+  effect occurs.
+- Added the Modelstamp arXiv preprint as the preferred research citation and
+  documented the distinction between preprint evidence and subsequent
+  repository experiments.
+
+### Changed
+
+- Aligned the package summary and public documentation around
+  pre-deserialization integrity and selected runtime-environment verification.
+- Synchronized README and documentation research-evidence provenance.
+
+### Security
+
+- Clarified that the new ordering experiments do not establish malicious-model
+  detection and do not make pickle or joblib safe for untrusted artifacts.
+
+## [0.1.4] - 2026-08-25
+
+### Added
+
+- Executable trust-boundary tests covering artifact and manifest replacement,
+  unsigned manifest edits, shared-key forgery, and signed rollback/replay.
+- A model-risk case study documenting expected outcomes, observed behavior,
+  control interpretation, and residual integrity risks (#21).
+- A reproducible dependency-drift matrix covering scikit-learn, XGBoost,
+  LightGBM, NumPy, joblib, and an unrelated-package noise control.
+
+### Fixed
+
+- Track scikit-learn as relevant to LightGBM's sklearn-compatible estimators,
+  so version drift is reported before embedded sklearn objects are loaded (#25).
+
+## [0.1.3] - 2026-08-21
+
+### Added
+
+- Animated README demonstration of successful artifact verification followed by
+  tamper detection before deserialization.
+- Direct edit links from the documentation site to the corresponding source
+  pages.
+
+### Changed
+
+- Refresh the development lockfile and its Python-version-specific dependency
+  resolutions.
+- Document the required Zenodo GitHub integration check in the release
+  procedure.
+
+## [0.1.2] - 2026-08-21
+
+### Fixed
+
+- Point the README badge, citation metadata, and machine-readable documentation
+  to the GitHub-linked Zenodo concept DOI used for automatic release archives.
+
+## [0.1.1] - 2026-08-21
+
+### Added
+- Problem-focused guides for dependency drift, joblib artifact verification,
+  CI/CD integration, and choosing Modelstamp alongside related tools.
+- Standalone runnable examples for scikit-learn pipelines, integrity failure,
+  and HMAC-authenticated manifests.
+- `llms.txt` and `llms-full.txt` documentation indexes for coding agents and
+  other machine-readable documentation consumers.
+- Explicit crawler guidance and expanded package-discovery metadata.
+
+### Changed
+- Improved the package summary, keywords, and documentation language around
+  artifact verification, dependency drift, reproducibility, and provenance.
+
+## [0.1.0] - 2026-08-20
+
+### Added
+- `save()` / `load()` wrapping joblib (with a pickle fallback) plus a JSON
+  environment manifest sidecar.
+- Environment capture: Python, scikit-learn, numpy, scipy, pandas, xgboost,
+  lightgbm, catboost, joblib, statsmodels, platform, timestamp, and git commit.
+- `on_mismatch` policy on load: `"warn"` (default), `"raise"`, `"ignore"`.
+- `check()` and `inspect()` to read the manifest without loading the model.
+- JSON-compatible user metadata stored in the manifest.
+- SHA-256 and size verification before deserialization.
+- Serialization backend and model component metadata in the manifest.
+- Strict manifest schema validation and atomic replacement of individual files.
+- Rollback-safe paired artifact/manifest commits and concurrent-writer locking.
+- Verification and deserialization through the same open artifact file.
+- Relevant-package comparison to avoid warnings about unrelated installations.
+- `inspect`, `check`, and `verify` command-line commands.
+- Optional HMAC-SHA-256 manifest authentication through `signing_key`.
+- JSON-normalized metadata, locked manifest inspection, and clean CLI handling
+  for filesystem errors.
+- Python 3.13 testing and typed-package metadata.
+- Reference-counted artifact locks that do not accumulate in long-running
+  processes.
+- Distribution-backed `__version__` lookup to prevent release version drift.
+- Authenticated signing-key identifiers and registry-based key rotation.
+- Property-based manifest validation tests and reproducible verification
+  benchmarks.
+- Searchable MkDocs API documentation with GitHub Pages deployment.
+- Current Node.js 24-based GitHub Actions versions.
+- Explicit symmetric-HMAC trust-boundary guidance and single-source release
+  version instructions.
+- Manifest authentication before environment comparison in `check()`.
+- `python -m modelstamp` CLI support and clearer unauthenticated-inspection
+  guidance.
+- Rejection of signing-key identifiers with ambiguous surrounding whitespace.
+# Changelog
+
+All notable changes to this project are documented here. The format is based on
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
+adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Added a dated JOSS 2026 scope and readiness baseline covering the official
+  public-development, research-impact, design-thinking, open-practice, and AI-use
+  gates; repository evidence; the post-20-February-2027 calendar floor; and
+  explicit unresolved submission blockers.
+- Added process-level concurrent save/read regressions, arbitrary-manifest-byte
+  fuzzing, and adversarial manifest filename traversal tests across the
+  supported CI platform matrix.
+- Added systematic Linux, Windows, and macOS CI coverage, including
+  lower/upper Python-version checks and installed-wheel smoke tests on every
+  supported operating-system family.
+- Added regression evidence that deserialization consumes the same open file
+  whose bytes were verified, with a separate supplementary validation record.
+- Added a pinned PyOD baseline reproduction and symmetric loader tracing for the
+  RQ3 pre-deserialization ordering comparison.
+- Added a public research-adoption page and a research-use guide covering
+  installation, examples, citation, archival metadata, and claim boundaries.
+- Added a standalone scikit-learn 1.5.2 to 1.6.1 version-drift experiment with
+  same-version control, direct joblib baseline, and pre-load ordering checks.
+- Added a rerunnable research-evidence bundle for the 14 drift scenarios and
+  eight trust-boundary scenarios, including pinned inputs and CI retention.
+- Added a source-auditable state-of-the-field evidence ledger and offline
+  validator.
+- Added architecture decision records for pre-deserialization verification,
+  manifest design, dependency relevance, integrity and authenticity boundaries,
+  and compatibility versus environment replication.
+- Added `ARTIFACT_CONTENTS.md`, a claim-to-file gate for the anonymized research
+  artifact, plus an offline path validator enforced in CI.
+- Added a publicly auditable research-adoption funnel covering anonymous PyPI
+  download activity, contacts, replies, external installs or trials, technical
+  feedback, and repeat use.
+
+### Changed
+
 - Standardized the project framing across `CITATION.cff` and the documentation
   site metadata as pre-deserialization integrity and environment verification
   for persisted Python machine-learning artifacts.
